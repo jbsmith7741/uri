@@ -34,6 +34,13 @@ func TestMarshal(t *testing.T) {
 			},
 			expected: "?Ints=1&Ints=2&Ints=3&strings=hello&strings=world",
 		},
+		"*struct with values": {
+			data: &struct {
+				Int    int
+				String string
+			}{Int: 10, String: "hello"},
+			expected: "?Int=10&String=hello",
+		},
 		/* todo how to handle this case?
 		"empty slice with default value": {
 			data: struct {

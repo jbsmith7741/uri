@@ -50,6 +50,12 @@ func Unmarshal(uri string, v interface{}) error {
 			}
 		}
 
+		skip, err := handleEmbeddeStruct(uri, field)
+		errs.Add(err)
+		if skip {
+			continue
+		}
+
 		required := vStruct.Type().Field(i).Tag.Get(requiredTag)
 		data := values.Get(name)
 		switch tag {
@@ -91,6 +97,37 @@ func Unmarshal(uri string, v interface{}) error {
 	}
 
 	return errs.ErrOrNil()
+}
+
+func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
+	// do we have an embedded struct
+	switch value.Kind() {
+	case reflect.Struct:
+		v := reflect.New(value.Type())
+		// if the struct implements the unmarshaler let SetField handle the parsing
+		if implementsUnmarshaler(v) {
+			return false, nil
+		}
+
+		err := Unmarshal(uri, v.Interface())
+		value.Set(v.Elem())
+		return true, err
+	case reflect.Ptr:
+		v := reflect.New(value.Type().Elem())
+		if v.Elem().Kind() != reflect.Struct {
+			return false, nil
+		}
+		// if the struct implements the unmarshaler let SetField handle the parsing
+		if implementsUnmarshaler(value) {
+			return false, nil
+		}
+
+		err := Unmarshal(uri, v.Interface())
+		value.Set(v)
+		return true, err
+	}
+
+	return false, nil
 }
 
 // SetField converts the string s to the type of value and sets the value if possible.
