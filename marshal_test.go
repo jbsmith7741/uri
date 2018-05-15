@@ -23,6 +23,13 @@ func TestMarshal(t *testing.T) {
 				Slice:  []int{1, 2, 3},
 			},
 		},
+		"*struct with values": {
+			data: &struct {
+				Int    int
+				String string
+			}{Int: 10, String: "hello"},
+			expected: "?Int=10&String=hello",
+		},
 		"slices": {
 			data: struct {
 				Ints    []int
