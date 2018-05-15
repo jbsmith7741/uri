@@ -29,11 +29,9 @@ var (
 func Marshal(v interface{}) (s string) {
 	var u url.URL
 	uVal := url.Values{}
-	var vStruct reflect.Value
-	if reflect.TypeOf(vStruct).Kind() == reflect.Ptr {
-		vStruct = reflect.ValueOf(v).Elem()
-	} else {
-		vStruct = reflect.ValueOf(v)
+	vStruct := reflect.ValueOf(v)
+	if vStruct.Kind() == reflect.Ptr {
+		vStruct = vStruct.Elem()
 	}
 
 	for i := 0; i < vStruct.NumField(); i++ {
