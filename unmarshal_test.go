@@ -195,6 +195,10 @@ type (
 )
 
 func TestTags(t *testing.T) {
+	type Embedded struct {
+		Int    int
+		String string
+	}
 	cases := map[string]struct {
 		uri      string
 		expected interface{}
@@ -282,6 +286,22 @@ func TestTags(t *testing.T) {
 				Int     int
 				Message string `uri:"fragment"`
 			}{Int: 10, Message: "hello world"},
+		},
+		"embedded struct": {
+			uri: "?Int=10&String=hello",
+			expected: &struct {
+				Embedded
+			}{
+				Embedded: Embedded{Int: 10, String: "hello"},
+			},
+		},
+		"embedded *struct": {
+			uri: "?Int=10&String=hello",
+			expected: &struct {
+				*Embedded
+			}{
+				Embedded: &Embedded{Int: 10, String: "hello"},
+			},
 		},
 	}
 	for name, test := range cases {
