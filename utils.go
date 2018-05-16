@@ -19,9 +19,13 @@ func implementsUnmarshaler(v reflect.Value) bool {
 	return v.Type().Implements(reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem())
 }
 
+func implementsMarshaler(v reflect.Value) bool {
+	return v.Type().Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem())
+}
+
 func tryMarshal(v reflect.Value) (string, error) {
 	// does it implement TextMarshaler?
-	if v.Type().Implements(reflect.TypeOf((*encoding.TextMarshaler)(nil)).Elem()) {
+	if implementsMarshaler(v) {
 		b, err := v.Interface().(encoding.TextMarshaler).MarshalText()
 		return string(b), err
 	} else if v.Type().Implements(reflect.TypeOf((*fmt.Stringer)(nil)).Elem()) {
