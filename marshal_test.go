@@ -4,17 +4,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/jbsmith7741/go-tools/trial"
 )
 
 func TestMarshal(t *testing.T) {
-	cases := map[string]struct {
-		data     interface{}
-		expected string
-	}{
+	type Embedded struct {
+		Int    int
+		String string
+	}
+	fn := func(args ...interface{}) (interface{}, error) {
+		return Marshal(args[0]), nil
+	}
+	trial.New(fn, trial.Cases{
 		"default values": {
-			data: struct {
+			Input: struct {
 				Int    int
 				Amount float64 `uri:"float" default:"1.1"`
 				Slice  []int   `default:"1,2,3"`
@@ -24,7 +27,7 @@ func TestMarshal(t *testing.T) {
 			},
 		},
 		"slices": {
-			data: struct {
+			Input: struct {
 				Ints    []int
 				Nil     []int
 				Strings []string `uri:"strings"`
@@ -32,56 +35,91 @@ func TestMarshal(t *testing.T) {
 				Ints:    []int{1, 2, 3},
 				Strings: []string{"hello", "world"},
 			},
-			expected: "?Ints=1&Ints=2&Ints=3&strings=hello&strings=world",
+			Expected: "?Ints=1&Ints=2&Ints=3&strings=hello&strings=world",
 		},
 		"*struct with values": {
-			data: &struct {
+			Input: &struct {
 				Int    int
 				String string
 			}{Int: 10, String: "hello"},
-			expected: "?Int=10&String=hello",
+			Expected: "?Int=10&String=hello",
 		},
 		/* todo how to handle this case?
 		"empty slice with default value": {
-			data: struct {
+			Input: struct {
 				Floats []float64 `uri:"float" default:"3.14,2.7,7.7"`
 			}{},
-			expected: "?float=[]",
+			Expected: "?float=[]",
 		},*/
 		"pointers": {
-			data: struct {
+			Input: struct {
 				Int     *int
 				Nil     *int
 				Default *int `default:"1"`
 			}{
 				Int: trial.IntP(10),
 			},
-			expected: "?Default=nil&Int=10",
+			Expected: "?Default=nil&Int=10",
 		},
 		"structs": {
-			data: struct {
+			Input: struct {
 				Time   time.Time       `uri:"time"`
 				Struct unmarshalStruct `uri:"struct"`
 			}{
 				Time:   trial.Time(time.RFC3339, "2018-04-04T00:00:00Z"),
-				Struct: unmarshalStruct{Data: "data"},
+				Struct: unmarshalStruct{Data: "Input"},
 			},
-			expected: "?struct=data&time=2018-04-04T00%3A00%3A00Z",
+			Expected: "?struct=Input&time=2018-04-04T00%3A00%3A00Z",
 		},
 		"bools": {
-			data: struct {
+			Input: struct {
 				BoolT bool
 				BoolF bool `default:"true"`
 			}{true, false},
-			expected: "?BoolF=false&BoolT=true",
+			Expected: "?BoolF=false&BoolT=true",
 		},
-	}
-	for msg, test := range cases {
-		s := Marshal(test.data)
-		if !cmp.Equal(s, test.expected) {
-			t.Errorf("FAIL: %q %s", msg, cmp.Diff(s, test.expected))
-		} else {
-			t.Logf("PASS: %q", msg)
-		}
-	}
+		"embedded struct": {
+			Input: struct {
+				Embedded
+			}{Embedded: Embedded{Int: 10, String: "brown fox"}},
+			Expected: "?Int=10&String=brown+fox",
+		},
+		"embedded *struct (ptr)": {
+			Input: struct {
+				*Embedded
+			}{Embedded: &Embedded{Int: 10, String: "brown fox"}},
+			Expected: "?Int=10&String=brown+fox",
+		},
+		"fragment": {
+			Input: struct {
+				Int   int
+				Value string `uri:"fragment"`
+			}{Int: 11, Value: "this is a fragment"},
+			Expected: "?Int=11#this%20is%20a%20fragment",
+		},
+		"scheme": {
+			Input: struct {
+				Scheme string `uri:"scheme"`
+			}{Scheme: "http"},
+			Expected: "http:",
+		},
+		"scheme + host + path": {
+			Input: struct {
+				Scheme string `uri:"scheme"`
+				Host   string `uri:"host"`
+				Path   string `uri:"path"`
+			}{
+				Scheme: "http",
+				Host:   "localhost:8080",
+				Path:   "path/to/file.txt",
+			},
+			Expected: "http://localhost:8080/path/to/file.txt",
+		},
+		"alias type with stringer": {
+			Input: struct {
+				Dessert dessert
+			}{Dessert: cake},
+			Expected: "?Dessert=cake",
+		},
+	}).EqualFn(trial.ContainsFn).Test(t)
 }

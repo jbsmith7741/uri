@@ -26,17 +26,41 @@ var (
 	fragment  = "fragment"  // anything after hash #
 )
 
+// Marshal a struct into a string representation of a uri
+// Note: Marshal panics if a struct or pointer to a struct is not provided
 func Marshal(v interface{}) (s string) {
-	var u url.URL
-	uVal := url.Values{}
+	u := &url.URL{}
+	uVal := &url.Values{}
 	vStruct := reflect.ValueOf(v)
 	if vStruct.Kind() == reflect.Ptr {
 		vStruct = vStruct.Elem()
 	}
 
+	parseStruct(u, uVal, vStruct)
+
+	// Note: url values are sorted by string value as they are encoded
+	u.RawQuery = uVal.Encode()
+
+	return u.String()
+}
+
+func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 	for i := 0; i < vStruct.NumField(); i++ {
 		field := vStruct.Field(i)
 
+		// check for embedded struct and handle recursively
+		if field.Kind() == reflect.Struct {
+			ptr := reflect.New(field.Type())
+			if !implementsMarshaler(ptr) {
+				parseStruct(u, uVal, field)
+				continue
+			}
+		} else if field.Kind() == reflect.Ptr && field.Elem().Kind() == reflect.Struct {
+			if !implementsMarshaler(field) {
+				parseStruct(u, uVal, field.Elem())
+				continue
+			}
+		}
 		var name string
 		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
 
@@ -50,6 +74,9 @@ func Marshal(v interface{}) (s string) {
 			continue
 		case path:
 			u.Path = fs
+			continue
+		case fragment:
+			u.Fragment = fs
 			continue
 		case origin:
 		case authority:
@@ -74,13 +101,12 @@ func Marshal(v interface{}) (s string) {
 			uVal.Add(name, fs)
 		}
 	}
-
-	// Note: url values are sorted by string value as they are encoded
-	u.RawQuery = uVal.Encode()
-
-	return u.String()
 }
 
+// GetFieldString returns a string representation of a Value
+// bools become true/false
+// pointers return "nil" if they are nil
+// slices combine elements with a comma. []int{1,2,3} -> "1,2,3"
 func GetFieldString(value reflect.Value) string {
 	switch value.Kind() {
 	case reflect.String:
