@@ -104,7 +104,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 }
 
 // GetFieldString returns a string representation of a Value
-// bools become true/false
+// booleans become true/false
 // pointers return "nil" if they are nil
 // slices combine elements with a comma. []int{1,2,3} -> "1,2,3"
 func GetFieldString(value reflect.Value) string {

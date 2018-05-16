@@ -115,6 +115,13 @@ func TestMarshal(t *testing.T) {
 			},
 			Expected: "http://localhost:8080/path/to/file.txt",
 		},
+		"ignore default time": {
+			Input: struct {
+				Int  int `uri:"z"`
+				Time time.Time
+			}{Int: 10, Time: time.Time{}},
+			Expected: "?z=10",
+		},
 		"alias type with stringer": {
 			Input: struct {
 				Dessert dessert
