@@ -23,9 +23,10 @@ func Unmarshal(uri string, v interface{}) error {
 	values := u.Query()
 
 	//verify that v is a pointer
-	if reflect.ValueOf(v).Kind() != reflect.Ptr {
-		return fmt.Errorf("struct must be a pointer")
+	if value := reflect.ValueOf(v); value.Kind() != reflect.Ptr || value.IsNil() {
+		return fmt.Errorf("%v must be a non nil pointer", reflect.TypeOf(v))
 	}
+
 	vStruct := reflect.ValueOf(v).Elem()
 	errs := appenderr.New()
 	for i := 0; i < vStruct.NumField(); i++ {
