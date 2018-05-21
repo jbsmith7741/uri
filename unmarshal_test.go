@@ -307,8 +307,9 @@ func TestTags(t *testing.T) {
 	for name, test := range cases {
 		v := reflect.New(reflect.TypeOf(test.expected).Elem()).Interface()
 		Unmarshal(test.uri, v)
-		if !cmp.Equal(v, test.expected) {
-			t.Errorf("FAIL: %v values did not match %s", name, cmp.Diff(v, test.expected))
+
+		if !trial.Equal(v, test.expected) {
+			t.Errorf("FAIL: %v values did not match %s", name, trial.Diff(v, test.expected))
 		} else {
 			t.Logf("PASS: %v", name)
 		}
@@ -375,6 +376,10 @@ func TestValidate(t *testing.T) {
 				Int  int
 				Name string `uri:"fragment" required:"true"`
 			}{Int: 10, Name: "hello"},
+		},
+		"nil pointer": {
+			data:      (*sliceDefault)(nil),
+			shouldErr: true,
 		},
 	}
 	for name, test := range cases {
