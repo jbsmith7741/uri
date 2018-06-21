@@ -1,11 +1,51 @@
 package uri
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/jbsmith7741/go-tools/trial"
 )
+
+func ExampleMarshal() {
+	v := struct {
+		Scheme string `uri:"scheme"`
+		Host   string `uri:"host"`
+		Path   string `uri:"path"`
+		Name   string `uri:"name"`
+		Count  int    `uri:"num"`
+	}{
+		Scheme: "https",
+		Host:   "localhost",
+		Path:   "root/index.html",
+		Name:   "Hello World",
+		Count:  11,
+	}
+	s := Marshal(v)
+	fmt.Println(s)
+
+	// Output: https://localhost/root/index.html?name=Hello+World&num=11
+}
+
+func ExampleGetFieldString() {
+	name := "hello world"
+	s := GetFieldString(reflect.ValueOf(name))
+	fmt.Println(s)
+
+	var i *int
+	s = GetFieldString(reflect.ValueOf(i))
+	fmt.Println(s)
+
+	v := []int{2, 1, 3}
+	s = GetFieldString(reflect.ValueOf(v))
+	fmt.Println(s)
+
+	// Output: hello world
+	// nil
+	// 2,1,3
+}
 
 func TestMarshal(t *testing.T) {
 	type Embedded struct {
