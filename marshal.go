@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	// Separator used for slices
-	Separator = ","
+	// separator used for slices
+	separator = ","
 
 	// supported struct tags
 	uriTag      = "uri"
@@ -105,7 +105,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 
 // GetFieldString returns a string representation of a Value
 // booleans become true/false
-// pointers return "nil" if they are nil
+// nil pointers return "nil"
 // slices combine elements with a comma. []int{1,2,3} -> "1,2,3"
 func GetFieldString(value reflect.Value) string {
 	switch value.Kind() {
@@ -114,9 +114,8 @@ func GetFieldString(value reflect.Value) string {
 	case reflect.Bool:
 		if value.Interface().(bool) == true {
 			return "true"
-		} else {
-			return "false"
 		}
+		return "false"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return fmt.Sprintf("%v", value.Interface())
 	case reflect.Float32, reflect.Float64:

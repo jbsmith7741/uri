@@ -1,6 +1,7 @@
 package uri
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -8,6 +9,25 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/jbsmith7741/go-tools/trial"
 )
+
+func ExampleUnmarshal() {
+	v := struct {
+		Scheme string `uri:"scheme"`
+		Host   string `uri:"host"`
+		Path   string `uri:"path"`
+		Name   string `uri:"name"`
+		Count  int    `uri:"num"`
+	}{}
+	s := "https://localhost/root/index.html?name=Hello+World&num=11"
+	Unmarshal(s, &v)
+	fmt.Printf("scheme:%s\nhost:%s\npath:%s\nname:%s\ncount:%d", v.Scheme, v.Host, v.Path, v.Name, v.Count)
+
+	// Output: scheme:https
+	// host:localhost
+	// path:/root/index.html
+	// name:Hello World
+	// count:11
+}
 
 type testStruct struct {
 	// basic types

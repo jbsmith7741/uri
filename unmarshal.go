@@ -89,7 +89,7 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		if field.Kind() == reflect.Slice {
-			data = strings.Join(values[name], Separator)
+			data = strings.Join(values[name], separator)
 		}
 
 		if err := SetField(field, data); err != nil {
@@ -180,7 +180,7 @@ func SetField(value reflect.Value, s string) error {
 	case reflect.Slice:
 		// create a generate slice and recursively assign the elements
 		baseType := reflect.TypeOf(value.Interface()).Elem()
-		data := strings.Split(s, Separator)
+		data := strings.Split(s, separator)
 		slice := reflect.MakeSlice(value.Type(), 0, len(data))
 		for _, v := range data {
 			baseValue := reflect.New(baseType).Elem()
