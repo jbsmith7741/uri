@@ -1,5 +1,7 @@
 [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/jbsmith7741/uri)
-[![Build Status](https://travis-ci.com/jbsmith7741/uri.svg?branch=master)](https://travis-ci.com/jbsmith7741/uri)[![Go Report Card](https://goreportcard.com/badge/github.com/jbsmith7741/uri)](https://goreportcard.com/report/github.com/jbsmith7741/uri)
+[![Build Status](https://travis-ci.com/jbsmith7741/uri.svg?branch=master)](https://travis-ci.com/jbsmith7741/uri)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jbsmith7741/uri)](https://goreportcard.com/report/github.com/jbsmith7741/uri)
+[![codecov](https://codecov.io/gh/jbsmith7741/uri/branch/master/graph/badge.svg)](https://codecov.io/gh/jbsmith7741/uri)
 
 # uri
 a convenient and easy way to unmarshal a uri to a struct.

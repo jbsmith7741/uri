@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jbsmith7741/go-tools/trial"
+	"github.com/jbsmith7741/trial"
 )
 
 func ExampleMarshal() {

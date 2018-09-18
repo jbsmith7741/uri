@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/jbsmith7741/go-tools/trial"
+	"github.com/jbsmith7741/trial"
 )
 
 func ExampleUnmarshal() {
@@ -327,9 +327,8 @@ func TestTags(t *testing.T) {
 	for name, test := range cases {
 		v := reflect.New(reflect.TypeOf(test.expected).Elem()).Interface()
 		Unmarshal(test.uri, v)
-
-		if !trial.Equal(v, test.expected) {
-			t.Errorf("FAIL: %v values did not match %s", name, trial.Diff(v, test.expected))
+		if equal, msg := trial.Equal(v, test.expected); !equal {
+			t.Errorf("FAIL: %v values did not match %s", name, msg)
 		} else {
 			t.Logf("PASS: %v", name)
 		}
