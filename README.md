@@ -4,61 +4,97 @@
 [![codecov](https://codecov.io/gh/jbsmith7741/uri/branch/master/graph/badge.svg)](https://codecov.io/gh/jbsmith7741/uri)
 
 # uri
-a convenient and easy way to unmarshal a uri to a struct.
- 
+
+a convenient and easy way to convert from a uri to a struct or vic-versa
+
 ## keywords
-- schema
+
+- scheme
 - host
 - path
 - authority (schema:host)
 - origin (schema:host/path)
 
+## struct tags
 
-## example
+- **uri** - the name of the variable or to designate a special keywords (schema, host, etc). empty defaults the exact name of the struct (same as json tags)
+- **default** - defined the default value of a variable
+- **required** - if the param is missing, unmarshal will return an error
+
+
+## example 1
+
 If we have the uri "http://example.com/path/to/page?name=ferret&color=purple" we can unmarshal this to a predefined struct as follows
-``` go 
+
+``` go
 type Example struct {
-    Schema `uri:"schema"`
-    Host   `uri:"Host"`
-    Path   `uri:"path"`
-    Name   `uri:"name"`
-    Color  `uri:"color"`
+    Scheme string `uri:"scheme"`
+    Host   string `uri:"Host"`
+    Path   string `uri:"path"`
+    Name   string `uri:"name"`
+    Color  string `uri:"color"`
 }
 
 func() {
 e := Example{}
 
 err := uri.Unmarshal("http://example.com/path/to/page?name=ferret&color=purple", &e)
- 
 }
 ```
-this would become the following struct 
+
+this would become the following struct
+
 ``` go
 e := Example{
-    Schema: "www",
+    Schema: "http",
     Host:   "example.com",
     Path:   "path/to/page",
     Name:   "ferret",
     Color:  "purple",
     }
- 
 ```
 
-## example 
+## example 2 - defaults
 
-``` golang 
-uri = http://example.org/wiki/Main_Page?Option1=10&Text=hello 
+``` go
+var site = "http://example.org/wiki/Main_Page?Option1=10"
 
 type MyStruct struct {
-    Schema `uri:"scheme"`
-    Host `uri:"host"`
-    Path `uri:"path"`
+    Path    string `uri:"path"`
     Option1 int
-    Text string 
+    Text    string `default:"qwerty"`
 }
 
 func Parse() {
-    var s *MyStruct
-    uri.Unmarshal(s, uri)
+    s := &MyStruct{}
+    uri.Unmarshal(site, s)
 }
+```
+
+this becomes
+
+``` go
+e := &MyStruct{
+    Path: "/wiki/Main_Page"
+    Option1: 10,
+    Text: "qwerty",
+}
+```
+
+## example 3 - required field
+
+``` go
+type Example struct {
+    Name string `uri:"name"`
+    Token string `uri:"token" required:"true"`
+}
+func Parse() {
+   site := "?name=hello"
+   e := &Example{}
+   err := uri.Unmarshal(site, e)
+}
+```
+Result
+```
+    token is required
 ```
