@@ -155,6 +155,36 @@ func TestMarshal(t *testing.T) {
 			},
 			Expected: "http://localhost:8080/path/to/file.txt",
 		},
+		"origin": {
+			Input: struct {
+				Origin string `uri:"origin"`
+			}{
+				Origin: "http://localhost:8080/path/to/file.txt",
+			},
+			Expected: "http://localhost:8080/path/to/file.txt",
+		},
+		"authority": {
+			Input: struct {
+				Authority string `uri:"authority"`
+			}{
+				Authority: "http://localhost:8080/path/to/file.txt",
+			},
+			Expected: "http://localhost:8080",
+		},
+		/* how should this case be handled?
+		"origin override": {
+			Input: struct {
+				Origin string `uri:"origin"`
+				Scheme string `uri:"scheme"`
+				Host   string `uri:"host"`
+				Path   string `uri:"path"`
+			}{
+				Origin: "http://localhost:8080/path/to/file.txt",
+				Host:   "127.0.0.1",
+				Path:   "other.txt",
+			},
+			Expected: "http://localhost:8080/path/to/file.txt",
+		}, */
 		"ignore default time": {
 			Input: struct {
 				Int  int `uri:"z"`

@@ -78,8 +78,21 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		case fragment:
 			u.Fragment = fs
 			continue
-		case origin:
-		case authority:
+		case origin: // scheme://host/path
+			l, err := url.Parse(fs)
+			if err == nil {
+				u.Host = l.Host
+				u.Scheme = l.Scheme
+				u.Path = l.Path
+			}
+			continue
+		case authority: // scheme://host
+			l, err := url.Parse(fs)
+			if err == nil {
+				u.Host = l.Host
+				u.Scheme = l.Scheme
+			}
+			continue
 		case "":
 			name = vStruct.Type().Field(i).Name
 		default:
