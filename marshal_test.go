@@ -84,6 +84,16 @@ func TestMarshal(t *testing.T) {
 			}{Int: 10, String: "hello"},
 			Expected: "?Int=10&String=hello",
 		},
+		"nil *struct": {
+			Input:    (*Embedded)(nil),
+			Expected: "",
+		},
+		"nil *struct with defaults": {
+			Input: (*struct {
+				Value string `default:"apple"`
+			})(nil),
+			Expected: "?Value=", // because there is a default uri sets the value to blank indicating it should be blank
+		},
 		/* todo how to handle this case?
 		"empty slice with default value": {
 			Input: struct {
