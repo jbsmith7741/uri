@@ -33,6 +33,9 @@ func Marshal(v interface{}) (s string) {
 	uVal := &url.Values{}
 	vStruct := reflect.ValueOf(v)
 	if vStruct.Kind() == reflect.Ptr {
+		if vStruct.IsNil() {
+			vStruct = reflect.New(vStruct.Type().Elem())
+		}
 		vStruct = vStruct.Elem()
 	}
 
