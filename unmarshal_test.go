@@ -148,6 +148,12 @@ func TestUnmarshal(t *testing.T) {
 				Strings: []string{"a", "b", "c"},
 			},
 		},
+		"string slice with ,": {
+			uri: "?Strings=a,b,c",
+			expected: testStruct{
+				Strings: []string{"a", "b", "c"},
+			},
+		},
 		"slice: int, int32, int64": {
 			uri: "?Ints=1&Ints=2&Ints=3&Ints32=4,5,6&Ints64=7,8,9",
 			expected: testStruct{
@@ -274,6 +280,12 @@ func TestTags(t *testing.T) {
 			expected: &struct {
 				Host string
 			}{Host: "hello"},
+		},
+		"host as a []string": {
+			uri: "https://host1,host2",
+			expected: &struct {
+				Hosts []string `uri:"host"`
+			}{Hosts: []string{"host1", "host2"}},
 		},
 		"default tag for primitive types": {
 			expected: &primitiveDefault{String: "hello", Bool: true, Int: 42, Float32: 12.34},
