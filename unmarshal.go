@@ -59,6 +59,9 @@ func Unmarshal(uri string, v interface{}) error {
 
 		required := vStruct.Type().Field(i).Tag.Get(requiredTag)
 		data := values.Get(name)
+		if field.Kind() == reflect.Slice {
+			data = strings.Join(values[name], separator)
+		}
 		switch tag {
 		case scheme:
 			data = u.Scheme
@@ -86,10 +89,6 @@ func Unmarshal(uri string, v interface{}) error {
 		if required == "true" && data == "" && def == "" {
 			errs.Add(fmt.Errorf("%s is required", name))
 			continue
-		}
-
-		if field.Kind() == reflect.Slice {
-			data = strings.Join(values[name], separator)
 		}
 
 		if err := SetField(field, data); err != nil {
