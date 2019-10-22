@@ -3,11 +3,13 @@ package uri
 import (
 	"encoding"
 	"fmt"
+	"log"
 	"net/url"
 	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jbsmith7741/go-tools/appenderr"
 )
@@ -144,6 +146,14 @@ func SetField(value reflect.Value, s string) error {
 			}
 			value.Set(v.Elem())
 			return nil
+		}
+		if value.Type().String() == "time.Duration" {
+			log.Println(value.Type(), s)
+			d, err := time.ParseDuration(s)
+			if err == nil {
+				value.Set(reflect.ValueOf(d))
+				return nil
+			}
 		}
 	}
 	switch value.Kind() {
