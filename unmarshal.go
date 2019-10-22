@@ -3,7 +3,6 @@ package uri
 import (
 	"encoding"
 	"fmt"
-	"log"
 	"net/url"
 	"path/filepath"
 	"reflect"
@@ -148,7 +147,6 @@ func SetField(value reflect.Value, s string) error {
 			return nil
 		}
 		if value.Type().String() == "time.Duration" {
-			log.Println(value.Type(), s)
 			d, err := time.ParseDuration(s)
 			if err == nil {
 				value.Set(reflect.ValueOf(d))
