@@ -88,6 +88,14 @@ func TestMarshal(t *testing.T) {
 			Input:    (*Embedded)(nil),
 			Expected: "",
 		},
+		"time.Duration": {
+			Input: struct {
+				Dura time.Duration
+			}{
+				Dura: 10 * time.Minute,
+			},
+			Expected: "?Dura=10m0s",
+		},
 		"nil *struct with defaults": {
 			Input: (*struct {
 				Value string `default:"apple"`

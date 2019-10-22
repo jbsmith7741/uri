@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/jbsmith7741/trial"
 )
 
@@ -61,6 +60,9 @@ type testStruct struct {
 
 	// alias
 	Dessert dessert
+
+	// special case
+	Dura time.Duration
 }
 
 type unmarshalStruct struct {
@@ -78,129 +80,128 @@ func (s unmarshalStruct) MarshalText() ([]byte, error) {
 
 func TestUnmarshal(t *testing.T) {
 	tm, _ := time.Parse(time.RFC3339, "2017-10-10T12:12:12Z")
-	cases := map[string]struct {
-		uri       string
-		shouldErr bool
-		expected  testStruct
-	}{
+	fn := func(args ...interface{}) (interface{}, error) {
+		var d testStruct
+		err := Unmarshal(args[0].(string), &d)
+		return d, err
+	}
+	cases := trial.Cases{
 		"string": {
-			uri:      "?String=hello",
-			expected: testStruct{String: "hello"},
+			Input:    "?String=hello",
+			Expected: testStruct{String: "hello"},
 		},
 		"integer: int, int32, int64": {
-			uri:      "?Int=10&Int32=32&Int64=64",
-			expected: testStruct{Int: 10, Int32: 32, Int64: 64},
+			Input:    "?Int=10&Int32=32&Int64=64",
+			Expected: testStruct{Int: 10, Int32: 32, Int64: 64},
 		},
 		"pointer: *int, *int32, *int64": {
-			uri:      "?IntP=77&Int32P=11&Int64P=222",
-			expected: testStruct{IntP: trial.IntP(77), Int32P: trial.Int32P(11), Int64P: trial.Int64P(222)},
+			Input:    "?IntP=77&Int32P=11&Int64P=222",
+			Expected: testStruct{IntP: trial.IntP(77), Int32P: trial.Int32P(11), Int64P: trial.Int64P(222)},
 		},
 		"invalid integer": {
-			uri:       "?Int=abc",
-			shouldErr: true,
+			Input:     "?Int=abc",
+			ShouldErr: true,
+		},
+		"duration as string": {
+			Input:    "?Dura=10m",
+			Expected: testStruct{Dura: 10 * time.Minute},
+		},
+		"duration as integer": {
+			Input:    "?Dura=1000000",
+			Expected: testStruct{Dura: time.Millisecond},
 		},
 		"float32, float64": {
-			uri:      "?Float32=12.2&Float64=33.3",
-			expected: testStruct{Float32: 12.2, Float64: 33.3},
+			Input:    "?Float32=12.2&Float64=33.3",
+			Expected: testStruct{Float32: 12.2, Float64: 33.3},
 		},
 		"pointer: *float32, *float64": {
-			uri:      "?Float32P=12.2&Float64P=33.3",
-			expected: testStruct{Float32P: trial.Float32P(12.2), Float64P: trial.Float64P(33.3)},
+			Input:    "?Float32P=12.2&Float64P=33.3",
+			Expected: testStruct{Float32P: trial.Float32P(12.2), Float64P: trial.Float64P(33.3)},
 		},
 		"invalid float": {
-			uri:       "?Float32=abc",
-			shouldErr: true,
+			Input:     "?Float32=abc",
+			ShouldErr: true,
 		},
 		"time.Time": {
-			uri:      "?Time=2017-10-10T12:12:12Z",
-			expected: testStruct{Time: tm},
+			Input:    "?Time=2017-10-10T12:12:12Z",
+			Expected: testStruct{Time: tm},
 		},
 		"*time.Time": {
-			uri:      "?TimeP=2017-10-10T12:12:12Z",
-			expected: testStruct{TimeP: &tm},
+			Input:    "?TimeP=2017-10-10T12:12:12Z",
+			Expected: testStruct{TimeP: &tm},
 		},
 		"invalid time": {
-			uri:       "?Time=2017-10-",
-			shouldErr: true,
+			Input:     "?Time=2017-10-",
+			ShouldErr: true,
 		},
 		"struct with UnMarshalText": {
-			uri: "?Unmarshal=abc&UnmarshalP=def",
-			expected: testStruct{
+			Input: "?Unmarshal=abc&UnmarshalP=def",
+			Expected: testStruct{
 				Unmarshal:  unmarshalStruct{Data: "abc"},
 				UnmarshalP: &unmarshalStruct{Data: "def"},
 			},
 		},
 		"bool": {
-			uri: "?Bool=true",
-			expected: testStruct{
+			Input: "?Bool=true",
+			Expected: testStruct{
 				Bool: true,
 			},
 		},
 		"bool implicit true": {
-			uri: "?Bool&Test",
-			expected: testStruct{
+			Input: "?Bool&Test",
+			Expected: testStruct{
 				Bool: true,
 			},
 		},
 		"slice of string": {
-			uri: "?Strings=a&Strings=b&Strings=c",
-			expected: testStruct{
+			Input: "?Strings=a&Strings=b&Strings=c",
+			Expected: testStruct{
 				Strings: []string{"a", "b", "c"},
 			},
 		},
 		"string slice with ,": {
-			uri: "?Strings=a,b,c",
-			expected: testStruct{
+			Input: "?Strings=a,b,c",
+			Expected: testStruct{
 				Strings: []string{"a", "b", "c"},
 			},
 		},
 		"slice: int, int32, int64": {
-			uri: "?Ints=1&Ints=2&Ints=3&Ints32=4,5,6&Ints64=7,8,9",
-			expected: testStruct{
+			Input: "?Ints=1&Ints=2&Ints=3&Ints32=4,5,6&Ints64=7,8,9",
+			Expected: testStruct{
 				Ints:   []int{1, 2, 3},
 				Ints32: []int32{4, 5, 6},
 				Ints64: []int64{7, 8, 9},
 			},
 		},
 		"slice: float32, float64": {
-			uri: "?Floats32=1.1&Floats32=2.2&Floats32=3.3&Floats64=4.4,5.5,6.6",
-			expected: testStruct{
+			Input: "?Floats32=1.1&Floats32=2.2&Floats32=3.3&Floats64=4.4,5.5,6.6",
+			Expected: testStruct{
 				Floats32: []float32{1.1, 2.2, 3.3},
 				Floats64: []float64{4.4, 5.5, 6.6},
 			},
 		},
 		"slice of *int": {
-			uri: "?IntsP=1,2,3",
-			expected: testStruct{
+			Input: "?IntsP=1,2,3",
+			Expected: testStruct{
 				IntsP: []*int{trial.IntP(1), trial.IntP(2), trial.IntP(3)},
 			},
 		},
 		"slice of *int with nil": {
-			uri: "?IntsP=1,2,nil,3",
-			expected: testStruct{
+			Input: "?IntsP=1,2,nil,3",
+			Expected: testStruct{
 				IntsP: []*int{trial.IntP(1), trial.IntP(2), nil, trial.IntP(3)},
 			},
 		},
 		"alias type (dessert)": {
-			uri:      "?Dessert=brownie",
-			expected: testStruct{Dessert: brownie},
+			Input:    "?Dessert=brownie",
+			Expected: testStruct{Dessert: brownie},
 		},
 		"invalid alias type": {
-			uri:       "?Dessert=cat",
-			shouldErr: true,
+			Input:     "?Dessert=cat",
+			ShouldErr: true,
 		},
 	}
-	for msg, test := range cases {
-		var d testStruct
-		err := Unmarshal(test.uri, &d)
-		if err != nil != test.shouldErr {
-			t.Errorf("FAIL: %v error mismatch %v", msg, err)
-		} else if !test.shouldErr && !cmp.Equal(d, test.expected) {
-			t.Errorf("FAIL: %v values did not match %s", msg, cmp.Diff(d, test.expected))
-		} else {
-			t.Logf("PASS: %v", msg)
-		}
-	}
+	trial.New(fn, cases).Test(t)
 }
 
 type (
