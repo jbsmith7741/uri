@@ -65,6 +65,7 @@ func TestMarshal(t *testing.T) {
 				Amount: 1.1,
 				Slice:  []int{1, 2, 3},
 			},
+			Expected: "",
 		},
 		"slices": {
 			Input: struct {
@@ -128,6 +129,18 @@ func TestMarshal(t *testing.T) {
 				Struct: unmarshalStruct{Data: "Input"},
 			},
 			Expected: "?struct=Input&time=2018-04-04T00%3A00%3A00Z",
+		},
+		"custom time.Time": {
+			Input: struct {
+				Day time.Time `uri:"day" format:"2006-01-02"`
+			}{Day: trial.TimeDay("2019-10-11")},
+			Expected: "?day=2019-10-11",
+		},
+		"custom *time.Time": {
+			Input: struct {
+				Hour *time.Time `uri:"hour" format:"2006-01-02T15"`
+			}{Hour: trial.TimeP("2006-01-02T15", "2019-10-11T12")},
+			Expected: "?hour=2019-10-11T12",
 		},
 		"bools": {
 			Input: struct {
@@ -216,5 +229,5 @@ func TestMarshal(t *testing.T) {
 			}{Dessert: cake},
 			Expected: "?Dessert=cake",
 		},
-	}).EqualFn(trial.ContainsFn).Test(t)
+	}).Test(t)
 }

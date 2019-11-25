@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"time"
 )
 
 var (
@@ -66,8 +67,15 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		}
 		var name string
 		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
+		format := vStruct.Type().Field(i).Tag.Get("format")
 
 		fs := GetFieldString(field)
+		if format != "" && field.Type() == reflect.TypeOf(time.Time{}) {
+			fs = field.Interface().(time.Time).Format(format)
+		} else if format != "" && field.Type() == reflect.TypeOf(&time.Time{}) {
+			fs = field.Interface().(*time.Time).Format(format)
+		}
+
 		switch tag {
 		case scheme:
 			u.Scheme = fs
