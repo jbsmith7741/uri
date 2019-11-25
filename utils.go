@@ -11,8 +11,7 @@ func isAlias(v reflect.Value) bool {
 	if v.Kind() == reflect.Struct || v.Kind() == reflect.Ptr {
 		return false
 	}
-	s := fmt.Sprint(v.Type())
-	return strings.Contains(s, ".")
+	return strings.Contains(v.Type().String(), ".")
 }
 
 func implementsUnmarshaler(v reflect.Value) bool {

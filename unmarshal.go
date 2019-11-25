@@ -47,7 +47,7 @@ func Unmarshal(uri string, v interface{}) error {
 		// check default values
 		def := vStruct.Type().Field(i).Tag.Get(defaultTag)
 		if def != "" {
-			if err := SetField(field, def); err != nil {
+			if err := SetField(field, def, vStruct.Type().Field(i)); err != nil {
 				errs.Add(fmt.Errorf("default value %s can not be set to %s (%s)", def, name, field.Type()))
 			}
 		}
@@ -92,7 +92,7 @@ func Unmarshal(uri string, v interface{}) error {
 			continue
 		}
 
-		if err := SetField(field, data); err != nil {
+		if err := SetField(field, data, vStruct.Type().Field(i)); err != nil {
 			errs.Add(fmt.Errorf("%s can not be set to %s (%s)", data, name, field.Type()))
 		}
 	}
@@ -135,7 +135,7 @@ func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 // Pointers and slices are recursively dealt with by deferencing the pointer
 // or creating a generic slice of type value.
 // All structs and alias' that implement encoding.TextUnmarshaler are suppported
-func SetField(value reflect.Value, s string) error {
+func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	if isAlias(value) {
 		v := reflect.New(value.Type())
 		if implementsUnmarshaler(v) {
@@ -146,9 +146,8 @@ func SetField(value reflect.Value, s string) error {
 			value.Set(v.Elem())
 			return nil
 		}
-		if value.Type().String() == "time.Duration" {
-			d, err := time.ParseDuration(s)
-			if err == nil {
+		if value.Type() == reflect.TypeOf(time.Second) {
+			if d, err := time.ParseDuration(s); err == nil {
 				value.Set(reflect.ValueOf(d))
 				return nil
 			}
@@ -172,18 +171,14 @@ func SetField(value reflect.Value, s string) error {
 			return err
 		}
 		value.SetFloat(f)
-
 	case reflect.Ptr:
-
 		// create non pointer type and recursively assign
 		z := reflect.New(value.Type().Elem())
 		if s == "nil" {
 			return nil
 		}
-		SetField(z.Elem(), s)
-
+		SetField(z.Elem(), s, sField)
 		value.Set(z)
-
 	case reflect.Slice:
 		// create a generate slice and recursively assign the elements
 		baseType := reflect.TypeOf(value.Interface()).Elem()
@@ -191,13 +186,22 @@ func SetField(value reflect.Value, s string) error {
 		slice := reflect.MakeSlice(value.Type(), 0, len(data))
 		for _, v := range data {
 			baseValue := reflect.New(baseType).Elem()
-			SetField(baseValue, v)
+			SetField(baseValue, v, sField)
 			slice = reflect.Append(slice, baseValue)
 		}
 		value.Set(slice)
-
 	case reflect.Struct:
 		v := reflect.New(value.Type())
+		if value.Type() == reflect.TypeOf(time.Time{}) {
+			if format := sField.Tag.Get("format"); format != "" {
+				t, err := time.Parse(format, s)
+				if err != nil {
+					return err
+				}
+				value.Set(reflect.ValueOf(t))
+				return nil
+			}
+		}
 		if implementsUnmarshaler(v) {
 			err := v.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s))
 			if err != nil {

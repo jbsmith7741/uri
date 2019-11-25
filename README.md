@@ -3,6 +3,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/jbsmith7741/uri)](https://goreportcard.com/report/github.com/jbsmith7741/uri)
 [![codecov](https://codecov.io/gh/jbsmith7741/uri/branch/master/graph/badge.svg)](https://codecov.io/gh/jbsmith7741/uri)
 
+Support for go 1.10+ 
+
+Older versions will probably work, but are not officially supported or tested against 
+
 # uri
 
 a convenient and easy way to convert from a uri to a struct or vic-versa
@@ -20,6 +24,7 @@ a convenient and easy way to convert from a uri to a struct or vic-versa
 - **uri** - the name of the variable or to designate a special keywords (schema, host, etc). empty defaults the exact name of the struct (same as json tags)
 - **default** - defined the default value of a variable
 - **required** - if the param is missing, unmarshal will return an error
+- **format** - time format field for marshaling of time.Time
 
 
 ## example 1

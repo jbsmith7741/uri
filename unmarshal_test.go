@@ -44,17 +44,20 @@ type testStruct struct {
 	Float64P *float64
 
 	// slice
-	Strings  []string
-	Ints     []int
-	IntsP    []*int
-	Ints32   []int32
-	Ints64   []int64
-	Floats32 []float32
-	Floats64 []float64
+	Strings   []string
+	Ints      []int
+	IntsP     []*int
+	Ints32    []int32
+	Ints64    []int64
+	Floats32  []float32
+	Floats64  []float64
+	TimeSlice []time.Time `format:"2006-01-02"`
 
 	// struct
 	Time       time.Time
 	TimeP      *time.Time
+	TimeF      time.Time  `format:"2006-01-02"`
+	TimePF     *time.Time `format:"2006-01-02"`
 	Unmarshal  unmarshalStruct
 	UnmarshalP *unmarshalStruct
 
@@ -79,7 +82,6 @@ func (s unmarshalStruct) MarshalText() ([]byte, error) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	tm, _ := time.Parse(time.RFC3339, "2017-10-10T12:12:12Z")
 	fn := func(args ...interface{}) (interface{}, error) {
 		var d testStruct
 		err := Unmarshal(args[0].(string), &d)
@@ -124,11 +126,27 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"time.Time": {
 			Input:    "?Time=2017-10-10T12:12:12Z",
-			Expected: testStruct{Time: tm},
+			Expected: testStruct{Time: trial.Time(time.RFC3339, "2017-10-10T12:12:12Z")},
 		},
 		"*time.Time": {
 			Input:    "?TimeP=2017-10-10T12:12:12Z",
-			Expected: testStruct{TimeP: &tm},
+			Expected: testStruct{TimeP: trial.TimeP(time.RFC3339, "2017-10-10T12:12:12Z")},
+		},
+		"(custom) time.Time": {
+			Input:    "?TimeF=2017-10-10",
+			Expected: testStruct{TimeF: trial.TimeDay("2017-10-10")},
+		},
+		"(custom) time parse error": {
+			Input:     "?TimeF=abcde",
+			ShouldErr: true,
+		},
+		"(custom) *time.Time": {
+			Input:    "?TimePF=2017-10-10",
+			Expected: testStruct{TimePF: trial.TimeP("2006-01-02", "2017-10-10")},
+		},
+		"(custom) []time.Time": {
+			Input:    "?TimeSlice=2017-10-10,2018-11-11",
+			Expected: testStruct{TimeSlice: []time.Time{trial.TimeDay("2017-10-10"), trial.TimeDay("2018-11-11")}},
 		},
 		"invalid time": {
 			Input:     "?Time=2017-10-",
@@ -201,7 +219,7 @@ func TestUnmarshal(t *testing.T) {
 			ShouldErr: true,
 		},
 	}
-	trial.New(fn, cases).Test(t)
+	trial.New(fn, cases).SubTest(t)
 }
 
 type (
