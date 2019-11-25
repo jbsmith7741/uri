@@ -136,6 +136,10 @@ func TestUnmarshal(t *testing.T) {
 			Input:    "?TimeF=2017-10-10",
 			Expected: testStruct{TimeF: trial.TimeDay("2017-10-10")},
 		},
+		"(custom) time parse error": {
+			Input:     "?TimeF=abcde",
+			ShouldErr: true,
+		},
 		"(custom) *time.Time": {
 			Input:    "?TimePF=2017-10-10",
 			Expected: testStruct{TimePF: trial.TimeP("2006-01-02", "2017-10-10")},
