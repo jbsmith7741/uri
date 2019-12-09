@@ -88,12 +88,12 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		if required == "true" && data == "" && def == "" {
-			errs.Add(fmt.Errorf("%s is required", name))
+			errs.Addf("%s is required", name)
 			continue
 		}
 
 		if err := SetField(field, data, vStruct.Type().Field(i)); err != nil {
-			errs.Add(fmt.Errorf("%s can not be set to %s (%s)", data, name, field.Type()))
+			errs.Addf("%s can not be set to %s (%s)", data, name, field.Type())
 		}
 	}
 
