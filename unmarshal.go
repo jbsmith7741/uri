@@ -3,6 +3,7 @@ package uri
 import (
 	"encoding"
 	"fmt"
+	"log"
 	"net/url"
 	"path/filepath"
 	"reflect"
@@ -159,7 +160,14 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Bool:
 		b := strings.ToLower(s) == "true" || s == ""
 		value.SetBool(b)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int32:
+		log.Println(value.Type().String())
+		if value.Type() == reflect.TypeOf(rune(' ')) {
+			r := []rune(s)[0]
+			value.Set(reflect.ValueOf(r))
+		}
+		fallthrough
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int64:
 		i, err := strconv.ParseInt(s, 10, 0)
 		if err != nil {
 			return err
@@ -207,8 +215,8 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 			if err != nil {
 				return err
 			}
+			value.Set(v.Elem())
 		}
-		value.Set(v.Elem())
 
 	default:
 		return fmt.Errorf("Unsupported type %v", value.Kind())

@@ -77,7 +77,7 @@ func TestMarshal(t *testing.T) {
 				R2: 8984,
 				R3: 'я',
 			},
-			Expected: "?r1=\t&r2=⌘&r3=я",
+			Expected: "?r1=%09&r2=%E2%8C%98&r3=%D1%8F",
 		},
 		"slices": {
 			Input: struct {

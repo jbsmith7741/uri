@@ -105,7 +105,7 @@ func TestUnmarshal(t *testing.T) {
 			Expected: &testStruct{String: "hello"},
 		},
 		"rune": {
-			Input:    "Rune=⌘",
+			Input:    "?Rune=%E2%8C%98",
 			Expected: &testStruct{Rune: '⌘'},
 		},
 		"integer: int, int32, int64": {
