@@ -104,6 +104,8 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 				u.Scheme = l.Scheme
 			}
 			continue
+		case "-": // skip disabled fields
+			continue
 		case "":
 			name = vStruct.Type().Field(i).Name
 		default:

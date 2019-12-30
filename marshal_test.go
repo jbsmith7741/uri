@@ -241,5 +241,12 @@ func TestMarshal(t *testing.T) {
 			}{Dessert: cake},
 			Expected: "?Dessert=cake",
 		},
+		"skip fields": {
+			Input: struct {
+				Skip   int `uri:"-"`
+				String string
+			}{Skip: 10, String: "apple"},
+			Expected: "?String=apple",
+		},
 	}).Test(t)
 }

@@ -31,7 +31,6 @@ func ExampleUnmarshal() {
 type testStruct struct {
 	// basic types
 	String   string
-	Rune     rune
 	Bool     bool
 	Int      int
 	IntP     *int
@@ -62,12 +61,14 @@ type testStruct struct {
 	Unmarshal  unmarshalStruct
 	UnmarshalP *unmarshalStruct
 	Struct     bStruct
+	StructP    *bStruct
 
 	// alias
 	Dessert dessert
 
 	// special case
 	Dura time.Duration
+	Skip int `uri:"-"`
 }
 
 type unmarshalStruct struct {
@@ -103,10 +104,6 @@ func TestUnmarshal(t *testing.T) {
 		"string": {
 			Input:    "?String=hello",
 			Expected: &testStruct{String: "hello"},
-		},
-		"rune": {
-			Input:    "?Rune=%E2%8C%98",
-			Expected: &testStruct{Rune: '⌘'},
 		},
 		"integer: int, int32, int64": {
 			Input:    "?Int=10&Int32=32&Int64=64",
@@ -179,6 +176,10 @@ func TestUnmarshal(t *testing.T) {
 			Input:    trial.Args("?", &testStruct{Struct: bStruct{Name: "hello", Value: 10}}),
 			Expected: &testStruct{Struct: bStruct{Name: "hello", Value: 10}},
 		},
+		"default *struct without MarshalText": {
+			Input:    trial.Args("?", &testStruct{StructP: &bStruct{Name: "hello", Value: 10}}),
+			Expected: &testStruct{StructP: &bStruct{Name: "hello", Value: 10}},
+		},
 		"bool": {
 			Input: "?Bool=true",
 			Expected: &testStruct{
@@ -237,6 +238,10 @@ func TestUnmarshal(t *testing.T) {
 		"invalid alias type": {
 			Input:     "?Dessert=cat",
 			ShouldErr: true,
+		},
+		"skip": {
+			Input:    "?-=10",
+			Expected: &testStruct{},
 		},
 	}
 	trial.New(fn, cases).SubTest(t)

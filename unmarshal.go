@@ -3,7 +3,6 @@ package uri
 import (
 	"encoding"
 	"fmt"
-	"log"
 	"net/url"
 	"path/filepath"
 	"reflect"
@@ -40,6 +39,9 @@ func Unmarshal(uri string, v interface{}) error {
 
 		name := vStruct.Type().Field(i).Name
 		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
+		if tag == "-" {
+			continue
+		}
 		if tag != "" {
 			name = tag
 			tag = strings.ToLower(tag)
@@ -105,14 +107,13 @@ func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 	// do we have an embedded struct
 	switch value.Kind() {
 	case reflect.Struct:
-		v := reflect.New(value.Type())
+		v := value.Addr()
 		// if the struct implements the unmarshaler let SetField handle the parsing
 		if implementsUnmarshaler(v) {
 			return false, nil
 		}
 
 		err := Unmarshal(uri, v.Interface())
-		value.Set(v.Elem())
 		return true, err
 	case reflect.Ptr:
 		v := reflect.New(value.Type().Elem())
@@ -123,9 +124,16 @@ func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 		if implementsUnmarshaler(value) {
 			return false, nil
 		}
-
-		err := Unmarshal(uri, v.Interface())
-		value.Set(v)
+		if value.IsNil() {
+			err := Unmarshal(uri, v.Interface())
+			v2 := reflect.New(value.Type().Elem())
+			// only set the pointer if values changed, otherwise keep it as nil
+			if !reflect.DeepEqual(v.Interface(), v2.Interface()) {
+				value.Set(v)
+			}
+			return true, err
+		}
+		err := Unmarshal(uri, value.Interface())
 		return true, err
 	}
 
@@ -160,14 +168,7 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Bool:
 		b := strings.ToLower(s) == "true" || s == ""
 		value.SetBool(b)
-	case reflect.Int32:
-		log.Println(value.Type().String())
-		if value.Type() == reflect.TypeOf(rune(' ')) {
-			r := []rune(s)[0]
-			value.Set(reflect.ValueOf(r))
-		}
-		fallthrough
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int64:
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(s, 10, 0)
 		if err != nil {
 			return err
