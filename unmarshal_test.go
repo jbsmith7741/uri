@@ -38,6 +38,9 @@ type testStruct struct {
 	Int32P   *int32
 	Int64    int64
 	Int64P   *int64
+	Uint     uint
+	Uint32   uint32
+	Uint64   uint64
 	Float32  float32
 	Float32P *float32
 	Float64  float64
@@ -109,12 +112,20 @@ func TestUnmarshal(t *testing.T) {
 			Input:    "?Int=10&Int32=32&Int64=64",
 			Expected: &testStruct{Int: 10, Int32: 32, Int64: 64},
 		},
+		"uint, uint32, uint64": {
+			Input:    "?Uint=10&Uint32=32&Uint64=64",
+			Expected: &testStruct{Uint: 10, Uint32: 32, Uint64: 64},
+		},
 		"pointer: *int, *int32, *int64": {
 			Input:    "?IntP=77&Int32P=11&Int64P=222",
 			Expected: &testStruct{IntP: trial.IntP(77), Int32P: trial.Int32P(11), Int64P: trial.Int64P(222)},
 		},
 		"invalid integer": {
 			Input:     "?Int=abc",
+			ShouldErr: true,
+		},
+		"invalid uint": {
+			Input:     "?Uint=abc",
 			ShouldErr: true,
 		},
 		"duration as string": {

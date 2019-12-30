@@ -168,6 +168,12 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Bool:
 		b := strings.ToLower(s) == "true" || s == ""
 		value.SetBool(b)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		i, err := strconv.ParseUint(s, 10, 0)
+		if err != nil {
+			return err
+		}
+		value.SetUint(i)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(s, 10, 0)
 		if err != nil {

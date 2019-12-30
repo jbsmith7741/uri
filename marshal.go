@@ -142,12 +142,9 @@ func GetFieldString(value reflect.Value) string {
 			return "true"
 		}
 		return "false"
-	case reflect.Int32:
-		if value.Type() == reflect.TypeOf(rune(' ')) {
-			return string(value.Interface().(rune))
-		}
-		fallthrough
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int64:
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("%v", value.Interface())
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return fmt.Sprintf("%v", value.Interface())
 	case reflect.Float32, reflect.Float64:
 		return fmt.Sprintf("%v", value.Interface())
