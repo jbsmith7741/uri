@@ -38,6 +38,9 @@ type testStruct struct {
 	Int32P   *int32
 	Int64    int64
 	Int64P   *int64
+	Uint     uint
+	Uint32   uint32
+	Uint64   uint64
 	Float32  float32
 	Float32P *float32
 	Float64  float64
@@ -60,16 +63,24 @@ type testStruct struct {
 	TimePF     *time.Time `format:"2006-01-02"`
 	Unmarshal  unmarshalStruct
 	UnmarshalP *unmarshalStruct
+	Struct     bStruct
+	StructP    *bStruct
 
 	// alias
 	Dessert dessert
 
 	// special case
 	Dura time.Duration
+	Skip int `uri:"-"`
 }
 
 type unmarshalStruct struct {
 	Data string
+}
+
+type bStruct struct {
+	Name  string
+	Value int
 }
 
 func (s *unmarshalStruct) UnmarshalText(text []byte) error {
@@ -83,42 +94,55 @@ func (s unmarshalStruct) MarshalText() ([]byte, error) {
 
 func TestUnmarshal(t *testing.T) {
 	fn := func(args ...interface{}) (interface{}, error) {
-		var d testStruct
-		err := Unmarshal(args[0].(string), &d)
+		var d interface{}
+		if len(args) > 1 {
+			d = args[1]
+		} else {
+			d = &testStruct{}
+		}
+		err := Unmarshal(args[0].(string), d)
 		return d, err
 	}
 	cases := trial.Cases{
 		"string": {
 			Input:    "?String=hello",
-			Expected: testStruct{String: "hello"},
+			Expected: &testStruct{String: "hello"},
 		},
 		"integer: int, int32, int64": {
 			Input:    "?Int=10&Int32=32&Int64=64",
-			Expected: testStruct{Int: 10, Int32: 32, Int64: 64},
+			Expected: &testStruct{Int: 10, Int32: 32, Int64: 64},
+		},
+		"uint, uint32, uint64": {
+			Input:    "?Uint=10&Uint32=32&Uint64=64",
+			Expected: &testStruct{Uint: 10, Uint32: 32, Uint64: 64},
 		},
 		"pointer: *int, *int32, *int64": {
 			Input:    "?IntP=77&Int32P=11&Int64P=222",
-			Expected: testStruct{IntP: trial.IntP(77), Int32P: trial.Int32P(11), Int64P: trial.Int64P(222)},
+			Expected: &testStruct{IntP: trial.IntP(77), Int32P: trial.Int32P(11), Int64P: trial.Int64P(222)},
 		},
 		"invalid integer": {
 			Input:     "?Int=abc",
 			ShouldErr: true,
 		},
+		"invalid uint": {
+			Input:     "?Uint=abc",
+			ShouldErr: true,
+		},
 		"duration as string": {
 			Input:    "?Dura=10m",
-			Expected: testStruct{Dura: 10 * time.Minute},
+			Expected: &testStruct{Dura: 10 * time.Minute},
 		},
 		"duration as integer": {
 			Input:    "?Dura=1000000",
-			Expected: testStruct{Dura: time.Millisecond},
+			Expected: &testStruct{Dura: time.Millisecond},
 		},
 		"float32, float64": {
 			Input:    "?Float32=12.2&Float64=33.3",
-			Expected: testStruct{Float32: 12.2, Float64: 33.3},
+			Expected: &testStruct{Float32: 12.2, Float64: 33.3},
 		},
 		"pointer: *float32, *float64": {
 			Input:    "?Float32P=12.2&Float64P=33.3",
-			Expected: testStruct{Float32P: trial.Float32P(12.2), Float64P: trial.Float64P(33.3)},
+			Expected: &testStruct{Float32P: trial.Float32P(12.2), Float64P: trial.Float64P(33.3)},
 		},
 		"invalid float": {
 			Input:     "?Float32=abc",
@@ -126,15 +150,15 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"time.Time": {
 			Input:    "?Time=2017-10-10T12:12:12Z",
-			Expected: testStruct{Time: trial.Time(time.RFC3339, "2017-10-10T12:12:12Z")},
+			Expected: &testStruct{Time: trial.Time(time.RFC3339, "2017-10-10T12:12:12Z")},
 		},
 		"*time.Time": {
 			Input:    "?TimeP=2017-10-10T12:12:12Z",
-			Expected: testStruct{TimeP: trial.TimeP(time.RFC3339, "2017-10-10T12:12:12Z")},
+			Expected: &testStruct{TimeP: trial.TimeP(time.RFC3339, "2017-10-10T12:12:12Z")},
 		},
 		"(custom) time.Time": {
 			Input:    "?TimeF=2017-10-10",
-			Expected: testStruct{TimeF: trial.TimeDay("2017-10-10")},
+			Expected: &testStruct{TimeF: trial.TimeDay("2017-10-10")},
 		},
 		"(custom) time parse error": {
 			Input:     "?TimeF=abcde",
@@ -142,11 +166,11 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"(custom) *time.Time": {
 			Input:    "?TimePF=2017-10-10",
-			Expected: testStruct{TimePF: trial.TimeP("2006-01-02", "2017-10-10")},
+			Expected: &testStruct{TimePF: trial.TimeP("2006-01-02", "2017-10-10")},
 		},
 		"(custom) []time.Time": {
 			Input:    "?TimeSlice=2017-10-10,2018-11-11",
-			Expected: testStruct{TimeSlice: []time.Time{trial.TimeDay("2017-10-10"), trial.TimeDay("2018-11-11")}},
+			Expected: &testStruct{TimeSlice: []time.Time{trial.TimeDay("2017-10-10"), trial.TimeDay("2018-11-11")}},
 		},
 		"invalid time": {
 			Input:     "?Time=2017-10-",
@@ -154,38 +178,46 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"struct with UnMarshalText": {
 			Input: "?Unmarshal=abc&UnmarshalP=def",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Unmarshal:  unmarshalStruct{Data: "abc"},
 				UnmarshalP: &unmarshalStruct{Data: "def"},
 			},
 		},
+		"default struct without MarshalText": {
+			Input:    trial.Args("?", &testStruct{Struct: bStruct{Name: "hello", Value: 10}}),
+			Expected: &testStruct{Struct: bStruct{Name: "hello", Value: 10}},
+		},
+		"default *struct without MarshalText": {
+			Input:    trial.Args("?", &testStruct{StructP: &bStruct{Name: "hello", Value: 10}}),
+			Expected: &testStruct{StructP: &bStruct{Name: "hello", Value: 10}},
+		},
 		"bool": {
 			Input: "?Bool=true",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Bool: true,
 			},
 		},
 		"bool implicit true": {
 			Input: "?Bool&Test",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Bool: true,
 			},
 		},
 		"slice of string": {
 			Input: "?Strings=a&Strings=b&Strings=c",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Strings: []string{"a", "b", "c"},
 			},
 		},
 		"string slice with ,": {
 			Input: "?Strings=a,b,c",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Strings: []string{"a", "b", "c"},
 			},
 		},
 		"slice: int, int32, int64": {
 			Input: "?Ints=1&Ints=2&Ints=3&Ints32=4,5,6&Ints64=7,8,9",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Ints:   []int{1, 2, 3},
 				Ints32: []int32{4, 5, 6},
 				Ints64: []int64{7, 8, 9},
@@ -193,30 +225,34 @@ func TestUnmarshal(t *testing.T) {
 		},
 		"slice: float32, float64": {
 			Input: "?Floats32=1.1&Floats32=2.2&Floats32=3.3&Floats64=4.4,5.5,6.6",
-			Expected: testStruct{
+			Expected: &testStruct{
 				Floats32: []float32{1.1, 2.2, 3.3},
 				Floats64: []float64{4.4, 5.5, 6.6},
 			},
 		},
 		"slice of *int": {
 			Input: "?IntsP=1,2,3",
-			Expected: testStruct{
+			Expected: &testStruct{
 				IntsP: []*int{trial.IntP(1), trial.IntP(2), trial.IntP(3)},
 			},
 		},
 		"slice of *int with nil": {
 			Input: "?IntsP=1,2,nil,3",
-			Expected: testStruct{
+			Expected: &testStruct{
 				IntsP: []*int{trial.IntP(1), trial.IntP(2), nil, trial.IntP(3)},
 			},
 		},
 		"alias type (dessert)": {
 			Input:    "?Dessert=brownie",
-			Expected: testStruct{Dessert: brownie},
+			Expected: &testStruct{Dessert: brownie},
 		},
 		"invalid alias type": {
 			Input:     "?Dessert=cat",
 			ShouldErr: true,
+		},
+		"skip": {
+			Input:    "?-=10",
+			Expected: &testStruct{},
 		},
 	}
 	trial.New(fn, cases).SubTest(t)

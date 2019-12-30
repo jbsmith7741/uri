@@ -104,6 +104,8 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 				u.Scheme = l.Scheme
 			}
 			continue
+		case "-": // skip disabled fields
+			continue
 		case "":
 			name = vStruct.Type().Field(i).Name
 		default:
@@ -140,6 +142,8 @@ func GetFieldString(value reflect.Value) string {
 			return "true"
 		}
 		return "false"
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("%v", value.Interface())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return fmt.Sprintf("%v", value.Interface())
 	case reflect.Float32, reflect.Float64:

@@ -67,6 +67,18 @@ func TestMarshal(t *testing.T) {
 			},
 			Expected: "",
 		},
+		/* "runes": {
+			Input: struct {
+				R1 rune `uri:"r1"`
+				R2 rune `uri:"r2"`
+				R3 rune `uri:"r3"`
+			}{
+				R1: '\t',
+				R2: 8984,
+				R3: 'я',
+			},
+			Expected: "?r1=%09&r2=%E2%8C%98&r3=%D1%8F",
+		}, */
 		"slices": {
 			Input: struct {
 				Ints    []int
@@ -81,9 +93,10 @@ func TestMarshal(t *testing.T) {
 		"*struct with values": {
 			Input: &struct {
 				Int    int
+				Uint   uint
 				String string
-			}{Int: 10, String: "hello"},
-			Expected: "?Int=10&String=hello",
+			}{Int: 10, Uint: 20, String: "hello"},
+			Expected: "?Int=10&String=hello&Uint=20",
 		},
 		"nil *struct": {
 			Input:    (*Embedded)(nil),
@@ -228,6 +241,13 @@ func TestMarshal(t *testing.T) {
 				Dessert dessert
 			}{Dessert: cake},
 			Expected: "?Dessert=cake",
+		},
+		"skip fields": {
+			Input: struct {
+				Skip   int `uri:"-"`
+				String string
+			}{Skip: 10, String: "apple"},
+			Expected: "?String=apple",
 		},
 	}).Test(t)
 }

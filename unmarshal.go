@@ -39,6 +39,9 @@ func Unmarshal(uri string, v interface{}) error {
 
 		name := vStruct.Type().Field(i).Name
 		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
+		if tag == "-" {
+			continue
+		}
 		if tag != "" {
 			name = tag
 			tag = strings.ToLower(tag)
@@ -88,12 +91,12 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		if required == "true" && data == "" && def == "" {
-			errs.Add(fmt.Errorf("%s is required", name))
+			errs.Addf("%s is required", name)
 			continue
 		}
 
 		if err := SetField(field, data, vStruct.Type().Field(i)); err != nil {
-			errs.Add(fmt.Errorf("%s can not be set to %s (%s)", data, name, field.Type()))
+			errs.Addf("%s can not be set to %s (%s)", data, name, field.Type())
 		}
 	}
 
@@ -104,14 +107,13 @@ func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 	// do we have an embedded struct
 	switch value.Kind() {
 	case reflect.Struct:
-		v := reflect.New(value.Type())
+		v := value.Addr()
 		// if the struct implements the unmarshaler let SetField handle the parsing
 		if implementsUnmarshaler(v) {
 			return false, nil
 		}
 
 		err := Unmarshal(uri, v.Interface())
-		value.Set(v.Elem())
 		return true, err
 	case reflect.Ptr:
 		v := reflect.New(value.Type().Elem())
@@ -122,9 +124,16 @@ func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 		if implementsUnmarshaler(value) {
 			return false, nil
 		}
-
-		err := Unmarshal(uri, v.Interface())
-		value.Set(v)
+		if value.IsNil() {
+			err := Unmarshal(uri, v.Interface())
+			v2 := reflect.New(value.Type().Elem())
+			// only set the pointer if values changed, otherwise keep it as nil
+			if !reflect.DeepEqual(v.Interface(), v2.Interface()) {
+				value.Set(v)
+			}
+			return true, err
+		}
+		err := Unmarshal(uri, value.Interface())
 		return true, err
 	}
 
@@ -159,6 +168,12 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Bool:
 		b := strings.ToLower(s) == "true" || s == ""
 		value.SetBool(b)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		i, err := strconv.ParseUint(s, 10, 0)
+		if err != nil {
+			return err
+		}
+		value.SetUint(i)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		i, err := strconv.ParseInt(s, 10, 0)
 		if err != nil {
@@ -207,8 +222,8 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 			if err != nil {
 				return err
 			}
+			value.Set(v.Elem())
 		}
-		value.Set(v.Elem())
 
 	default:
 		return fmt.Errorf("Unsupported type %v", value.Kind())
