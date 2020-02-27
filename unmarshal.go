@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/jbsmith7741/go-tools/appenderr"
 )
@@ -174,7 +175,14 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 			return err
 		}
 		value.SetUint(i)
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int32:
+		if sField.Tag.Get("format") == "rune" {
+			r, _ := utf8.DecodeRuneInString(s)
+			value.Set(reflect.ValueOf(r))
+			return nil
+		}
+		fallthrough
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int64:
 		i, err := strconv.ParseInt(s, 10, 0)
 		if err != nil {
 			return err

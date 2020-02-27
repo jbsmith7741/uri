@@ -45,6 +45,8 @@ type testStruct struct {
 	Float32P *float32
 	Float64  float64
 	Float64P *float64
+	Rune     rune  `format:"rune"`
+	RuneP    *rune `format:"rune"`
 
 	// slice
 	Strings   []string
@@ -65,6 +67,7 @@ type testStruct struct {
 	UnmarshalP *unmarshalStruct
 	Struct     bStruct
 	StructP    *bStruct
+	private    bStruct
 
 	// alias
 	Dessert dessert
@@ -115,6 +118,10 @@ func TestUnmarshal(t *testing.T) {
 		"uint, uint32, uint64": {
 			Input:    "?Uint=10&Uint32=32&Uint64=64",
 			Expected: &testStruct{Uint: 10, Uint32: 32, Uint64: 64},
+		},
+		"runes": {
+			Input:    "?Rune=%09&RuneP=%D1%8F",
+			Expected: &testStruct{Rune: '\t', RuneP: trial.Int32P('я')},
 		},
 		"pointer: *int, *int32, *int64": {
 			Input:    "?IntP=77&Int32P=11&Int64P=222",
@@ -190,6 +197,10 @@ func TestUnmarshal(t *testing.T) {
 		"default *struct without MarshalText": {
 			Input:    trial.Args("?", &testStruct{StructP: &bStruct{Name: "hello", Value: 10}}),
 			Expected: &testStruct{StructP: &bStruct{Name: "hello", Value: 10}},
+		},
+		"default private struct": {
+			Input:    trial.Args("?", &testStruct{private: bStruct{Name: "hello", Value: 10}}),
+			Expected: &testStruct{private: bStruct{Name: "hello", Value: 10}},
 		},
 		"bool": {
 			Input: "?Bool=true",

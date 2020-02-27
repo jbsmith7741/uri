@@ -24,7 +24,9 @@ a convenient and easy way to convert from a uri to a struct or vic-versa
 - **uri** - the name of the variable or to designate a special keywords (schema, host, etc). empty defaults the exact name of the struct (same as json tags)
 - **default** - defined the default value of a variable
 - **required** - if the param is missing, unmarshal will return an error
-- **format** - time format field for marshaling of time.Time
+- **format** - 
+  - time.Time: time format field for marshaling of time.Time
+  - rune/int32: `format:"rune"`
 
 
 ## example 1
