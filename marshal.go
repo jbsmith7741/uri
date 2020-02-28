@@ -74,6 +74,8 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 			fs = field.Interface().(time.Time).Format(format)
 		} else if format != "" && field.Type() == reflect.TypeOf(&time.Time{}) {
 			fs = field.Interface().(*time.Time).Format(format)
+		} else if format == "rune" && field.Kind() == reflect.Int32 {
+			fs = string(field.Interface().(rune))
 		}
 
 		switch tag {

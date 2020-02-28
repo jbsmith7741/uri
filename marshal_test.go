@@ -67,18 +67,18 @@ func TestMarshal(t *testing.T) {
 			},
 			Expected: "",
 		},
-		/* "runes": {
+		"runes": {
 			Input: struct {
-				R1 rune `uri:"r1"`
-				R2 rune `uri:"r2"`
-				R3 rune `uri:"r3"`
+				R1 rune `uri:"r1" format:"rune"`
+				R2 rune `uri:"r2" format:"rune"`
+				R3 rune `uri:"r3" format:"rune"`
 			}{
 				R1: '\t',
 				R2: 8984,
 				R3: 'я',
 			},
 			Expected: "?r1=%09&r2=%E2%8C%98&r3=%D1%8F",
-		}, */
+		},
 		"slices": {
 			Input: struct {
 				Ints    []int
