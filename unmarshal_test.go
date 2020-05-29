@@ -58,6 +58,12 @@ type testStruct struct {
 	Floats64  []float64
 	TimeSlice []time.Time `format:"2006-01-02"`
 
+	// maps
+	MString map[string]string
+	MInt    map[int]int
+	MStrInt map[string]int
+	MIntStr map[int]string
+
 	// struct
 	Time       time.Time
 	TimeP      *time.Time
@@ -264,6 +270,15 @@ func TestUnmarshal(t *testing.T) {
 		"skip": {
 			Input:    "?-=10",
 			Expected: &testStruct{},
+		},
+		"maps": {
+			Input: "?MString=fruit:apple,mammal:dog&MInt=1:2,3:4&MStrInt=fruit:1,dog:2&MIntStr=1:fruit,2:dog",
+			Expected: &testStruct{
+				MString: map[string]string{"fruit": "apple", "mammal": "dog"},
+				MInt:    map[int]int{1: 2, 3: 4},
+				MStrInt: map[string]int{"fruit": 1, "dog": 2},
+				MIntStr: map[int]string{1: "fruit", 2: "dog"},
+			},
 		},
 	}
 	trial.New(fn, cases).SubTest(t)
