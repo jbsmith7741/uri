@@ -25,9 +25,25 @@ a convenient and easy way to convert from a uri to a struct or vic-versa
 - **default** - defined the default value of a variable
 - **required** - if the param is missing, unmarshal will return an error
 - **format** - 
-  - time.Time: time format field for marshaling of time.Time
+  - time.Time: time format field for marshaling of time.Time `format:"2006-01-02T15:04:05Z"`
   - rune/int32: `format:"rune"`
 
+
+## Non-Standard Query Params Support 
+
+### Arrays/Slices 
+Arrays are supported by passing a comma separated list or by passing the value multiple times
+
+  - `?array=1,2,3,4,5,6`
+  - `?array=1&array=2&array=3&array=4`
+
+### Maps
+ maps are supported by providing the key value param into the value with a colon `:` in between them. Multiple pairs can be passed as separated params or joined with the pipe `|` 
+
+  - map[string]int `?map=a:1|b:2|c:3` 
+  - map[int]string `?map=1:a&map=2:b&map=3:c`
+  - map[string][]int `?map=a:1,2,3|b:4,5,6`
+  - map[int]time.Time 'format:"2006-01-02' `?map=0:2020-01-01`
 
 ## example 1
 

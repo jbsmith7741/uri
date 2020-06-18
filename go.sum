@@ -1,8 +1,15 @@
 github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
+github.com/google/go-cmp v0.4.1 h1:/exdXoGamhu5ONeUJH0deniYLWYvQwW66yvlfiiKTu0=
+github.com/google/go-cmp v0.4.1/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/jbsmith7741/go-tools v0.2.0 h1:l4jdjoE4y6Mom5P8vhN3eCUs48CR7dAJINNbuhiE/Oo=
 github.com/jbsmith7741/go-tools v0.2.0/go.mod h1:UIlRAZ6aTSLlVI+owNLWbVS9e/Rywzahvurv/PUVBKg=
+github.com/jbsmith7741/trial v0.2.1 h1:mb9OLopY87ZPnCkq/tOWxSahWYQrPIeiT4msW9en89Y=
+github.com/jbsmith7741/trial v0.2.1/go.mod h1:deOzn6EeHqAOPybVqwx9Lwethl0AkfWzFUcEkk8vc8c=
 github.com/jbsmith7741/trial v0.3.0 h1:VIMmdwi2BzseuTHODz6UE9ZOMOUJROMfKVz+KRE7JBU=
 github.com/jbsmith7741/trial v0.3.0/go.mod h1:deOzn6EeHqAOPybVqwx9Lwethl0AkfWzFUcEkk8vc8c=
+github.com/jbsmith7741/trial v0.3.1 h1:JZ0/w3lhfH4iacf9R2DnZWtTMa/Uf4O13gnuMLTub/M=
+github.com/jbsmith7741/trial v0.3.1/go.mod h1:M4FQWUgVpPY2+i53L2nSB0AyPc86kSTIigcr9Q7XQlY=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
