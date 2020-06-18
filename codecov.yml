@@ -2,6 +2,10 @@ coverage:
   range: 60..90
   round: down
   precision: 2
+  status: 
+      project: 
+        default: 
+          target: 90%
 
 ignore:
 - "alias_example.go"
