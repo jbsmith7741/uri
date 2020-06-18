@@ -3,9 +3,12 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/jbsmith7741/uri)](https://goreportcard.com/report/github.com/jbsmith7741/uri)
 [![codecov](https://codecov.io/gh/jbsmith7741/uri/branch/master/graph/badge.svg)](https://codecov.io/gh/jbsmith7741/uri)
 
-Support for go 1.10+ 
+Support for go 1.12+ 
 
-Older versions will probably work, but are not officially supported or tested against 
+Older versions will probably work, but are not officially supported or tested against. 
+
+Known Issues: 
+ - maps will not work before 1.12 because of use of reflect.RangeMap
 
 # uri
 
