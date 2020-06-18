@@ -63,6 +63,8 @@ type testStruct struct {
 	MInt    map[int]int
 	MStrInt map[string]int
 	MIntStr map[int]string
+	MFloats map[string][]float64
+	MTime   map[string]time.Time `format:"2006-01-02"`
 
 	// struct
 	Time       time.Time
@@ -272,13 +274,32 @@ func TestUnmarshal(t *testing.T) {
 			Expected: &testStruct{},
 		},
 		"maps": {
-			Input: "?MString=fruit:apple,mammal:dog&MInt=1:2,3:4&MStrInt=fruit:1,dog:2&MIntStr=1:fruit,2:dog",
+			Input: "?MString=fruit:apple|mammal:dog&MInt=1:2|3:4&MStrInt=fruit:1|dog:2&MIntStr=1:fruit&MIntStr=2:dog",
 			Expected: &testStruct{
 				MString: map[string]string{"fruit": "apple", "mammal": "dog"},
 				MInt:    map[int]int{1: 2, 3: 4},
 				MStrInt: map[string]int{"fruit": 1, "dog": 2},
 				MIntStr: map[int]string{1: "fruit", 2: "dog"},
 			},
+		},
+		"map_slice": {
+			Input: "?MFloats=cat:1.2,2.3,3.4|dog:4.4,5.5|bat:0.0",
+			Expected: &testStruct{
+				MFloats: map[string][]float64{"cat": {1.2, 2.3, 3.4}, "dog": {4.4, 5.5}, "bat": {0.0}},
+			},
+		},
+		"map_time": {
+			Input: "?MTime=a:2020-01-02|b:2020-02-02",
+			Expected: &testStruct{
+				MTime: map[string]time.Time{
+					"a": trial.TimeDay("2020-01-02"),
+					"b": trial.TimeDay("2020-02-02"),
+				},
+			},
+		},
+		"map_blank": {
+			Input:     "?MString",
+			ShouldErr: true,
 		},
 	}
 	trial.New(fn, cases).SubTest(t)

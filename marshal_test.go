@@ -31,15 +31,15 @@ func ExampleMarshal() {
 
 func ExampleGetFieldString() {
 	name := "hello world"
-	s := GetFieldString(reflect.ValueOf(name))
+	s := GetFieldString(reflect.ValueOf(name), "")
 	fmt.Println(s)
 
 	var i *int
-	s = GetFieldString(reflect.ValueOf(i))
+	s = GetFieldString(reflect.ValueOf(i), "")
 	fmt.Println(s)
 
 	v := []int{2, 1, 3}
-	s = GetFieldString(reflect.ValueOf(v))
+	s = GetFieldString(reflect.ValueOf(v), "")
 	fmt.Println(s)
 
 	// Output: hello world
@@ -53,9 +53,9 @@ func TestMarshal(t *testing.T) {
 		String string
 	}
 	fn := func(args ...interface{}) (interface{}, error) {
-		return Marshal(args[0]), nil
+		return MarshalUnescaped(args[0]), nil
 	}
-	trial.New(fn, trial.Cases{
+	cases := trial.Cases{
 		"default values": {
 			Input: struct {
 				Int    int
@@ -77,7 +77,7 @@ func TestMarshal(t *testing.T) {
 				R2: 8984,
 				R3: 'я',
 			},
-			Expected: "?r1=%09&r2=%E2%8C%98&r3=%D1%8F",
+			Expected: "?r1=\t&r2=⌘&r3=я",
 		},
 		"slices": {
 			Input: struct {
@@ -141,7 +141,7 @@ func TestMarshal(t *testing.T) {
 				Time:   trial.Time(time.RFC3339, "2018-04-04T00:00:00Z"),
 				Struct: unmarshalStruct{Data: "Input"},
 			},
-			Expected: "?struct=Input&time=2018-04-04T00%3A00%3A00Z",
+			Expected: "?struct=Input&time=2018-04-04T00:00:00Z",
 		},
 		"custom time.Time": {
 			Input: struct {
@@ -166,20 +166,20 @@ func TestMarshal(t *testing.T) {
 			Input: struct {
 				Embedded
 			}{Embedded: Embedded{Int: 10, String: "brown fox"}},
-			Expected: "?Int=10&String=brown+fox",
+			Expected: "?Int=10&String=brown fox",
 		},
 		"embedded *struct (ptr)": {
 			Input: struct {
 				*Embedded
 			}{Embedded: &Embedded{Int: 10, String: "brown fox"}},
-			Expected: "?Int=10&String=brown+fox",
+			Expected: "?Int=10&String=brown fox",
 		},
 		"fragment": {
 			Input: struct {
 				Int   int
 				Value string `uri:"fragment"`
 			}{Int: 11, Value: "this is a fragment"},
-			Expected: "?Int=11#this%20is%20a%20fragment",
+			Expected: "?Int=11#this is a fragment",
 		},
 		"scheme": {
 			Input: struct {
@@ -249,5 +249,37 @@ func TestMarshal(t *testing.T) {
 			}{Skip: 10, String: "apple"},
 			Expected: "?String=apple",
 		},
-	}).Test(t)
+		"map[string]string": {
+			Input: struct {
+				Map map[string]string `uri:"map"`
+			}{Map: map[string]string{"fruit": "apple"}},
+			Expected: "?map=fruit:apple", // fruit:apple
+		},
+		"map[int]string": {
+			Input: struct {
+				Map map[int]string `uri:"map"`
+			}{Map: map[int]string{1: "apple", 2: "banana"}},
+			Expected: "?map=1:apple|2:banana",
+		},
+		"map[int][]string]": {
+			Input: struct {
+				Map map[int][]string `uri:"map"`
+			}{Map: map[int][]string{0: {"apple", "banana"}}},
+			Expected: "?map=0:apple,banana",
+		},
+		"map[string]time.Time": {
+			Input: struct {
+				Map map[string]time.Time `uri:"map" format:"2006-01-02"`
+			}{Map: map[string]time.Time{"a": trial.TimeDay("2020-01-01")}},
+			Expected: "?map=a:2020-01-01",
+		},
+		"map(nil)": {
+			Input: struct {
+				Map map[string]string `uri:"map"`
+			}{Map: nil},
+			Expected: "",
+		},
+	}
+
+	trial.New(fn, cases).SubTest(t)
 }

@@ -2,6 +2,7 @@ package uri
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"reflect"
 	"strings"
@@ -10,7 +11,8 @@ import (
 
 var (
 	// separator used for slices
-	separator = ","
+	separator    = ","
+	mapSeparator = "|"
 
 	// supported struct tags
 	uriTag      = "uri"
@@ -44,8 +46,18 @@ func Marshal(v interface{}) (s string) {
 
 	// Note: url values are sorted by string value as they are encoded
 	u.RawQuery = uVal.Encode()
-
 	return u.String()
+}
+
+func MarshalUnescaped(v interface{}) string {
+	m := Marshal(v)
+	s, err := url.QueryUnescape(m)
+	if err != nil {
+		log.Println(err)
+		return m
+	}
+	return s
+
 }
 
 func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
@@ -66,17 +78,10 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 			}
 		}
 		var name string
-		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
-		format := vStruct.Type().Field(i).Tag.Get("format")
+		structTag := vStruct.Type().Field(i).Tag
+		tag := structTag.Get(uriTag)
 
-		fs := GetFieldString(field)
-		if format != "" && field.Type() == reflect.TypeOf(time.Time{}) {
-			fs = field.Interface().(time.Time).Format(format)
-		} else if format != "" && field.Type() == reflect.TypeOf(&time.Time{}) {
-			fs = field.Interface().(*time.Time).Format(format)
-		} else if format == "rune" && field.Kind() == reflect.Int32 {
-			fs = string(field.Interface().(rune))
-		}
+		fs := GetFieldString(field, structTag)
 
 		switch tag {
 		case scheme:
@@ -122,7 +127,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		}
 
 		if field.Kind() == reflect.Slice {
-			for _, v := range strings.Split(fs, ",") {
+			for _, v := range strings.Split(fs, separator) {
 				uVal.Add(name, v)
 			}
 		} else {
@@ -135,7 +140,22 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 // booleans become true/false
 // nil pointers return "nil"
 // slices combine elements with a comma. []int{1,2,3} -> "1,2,3"
-func GetFieldString(value reflect.Value) string {
+func GetFieldString(value reflect.Value, sTag reflect.StructTag) string {
+
+	format := sTag.Get("format")
+	if format != "" {
+		if value.Type() == reflect.TypeOf(time.Time{}) {
+			return value.Interface().(time.Time).Format(format)
+		}
+		if value.Type() == reflect.TypeOf(&time.Time{}) {
+			return value.Interface().(*time.Time).Format(format)
+		}
+	}
+
+	if format == "rune" && value.Kind() == reflect.Int32 {
+		return string(value.Interface().(rune))
+	}
+
 	switch value.Kind() {
 	case reflect.String:
 		return value.Interface().(string)
@@ -154,16 +174,25 @@ func GetFieldString(value reflect.Value) string {
 		if value.IsNil() {
 			return "nil"
 		}
-		return GetFieldString(value.Elem())
+		return GetFieldString(value.Elem(), sTag)
 	case reflect.Slice:
 		var s string
 		for i := 0; i < value.Len(); i++ {
-			s += GetFieldString(value.Index(i)) + ","
+			s += GetFieldString(value.Index(i), sTag) + separator
 		}
-		return strings.TrimRight(s, ",")
+		return strings.TrimRight(s, separator)
 	case reflect.Struct:
 		s, _ := tryMarshal(value)
 		return s
+	case reflect.Map:
+		iter := value.MapRange()
+		var s string
+		for iter.Next() {
+			k := GetFieldString(iter.Key(), sTag)
+			v := GetFieldString(iter.Value(), sTag)
+			s += mapSeparator + k + ":" + v
+		}
+		return strings.TrimLeft(s, mapSeparator)
 	default:
 		return ""
 	}

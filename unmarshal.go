@@ -67,6 +67,9 @@ func Unmarshal(uri string, v interface{}) error {
 		if field.Kind() == reflect.Slice {
 			data = strings.Join(values[name], separator)
 		}
+		if field.Kind() == reflect.Map {
+			data = strings.Join(values[name], mapSeparator)
+		}
 		switch tag {
 		case scheme:
 			data = u.Scheme
@@ -97,7 +100,7 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		if err := SetField(field, data, vStruct.Type().Field(i)); err != nil {
-			errs.Addf("%s can not be set to %s (%s)", data, name, field.Type())
+			errs.Addf("%q can not be set to %s (%s)", data, name, field.Type())
 		}
 	}
 
@@ -244,7 +247,7 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 		vType := value.Type().Elem()
 
 		// Split string into fields and key,value pairs
-		for _, row := range strings.Split(s, ",") {
+		for _, row := range strings.Split(s, mapSeparator) {
 			d := strings.Split(row, ":")
 			if len(d) != 2 {
 				return fmt.Errorf("invalid map format expected key:value got %v", row)
