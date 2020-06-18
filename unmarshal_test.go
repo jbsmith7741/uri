@@ -301,6 +301,10 @@ func TestUnmarshal(t *testing.T) {
 			Input:     "?MString",
 			ShouldErr: true,
 		},
+		"map_invalid": {
+			Input:     "?MInt=a:b&MStrInt=a:b",
+			ShouldErr: true,
+		},
 	}
 	trial.New(fn, cases).SubTest(t)
 }

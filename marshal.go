@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 )
@@ -49,6 +50,7 @@ func Marshal(v interface{}) (s string) {
 	return u.String()
 }
 
+// MarshalUnescaped is the same as marshal but without url encoding the values
 func MarshalUnescaped(v interface{}) string {
 	m := Marshal(v)
 	s, err := url.QueryUnescape(m)
@@ -186,13 +188,14 @@ func GetFieldString(value reflect.Value, sTag reflect.StructTag) string {
 		return s
 	case reflect.Map:
 		iter := value.MapRange()
-		var s string
+		s := make([]string, 0)
 		for iter.Next() {
 			k := GetFieldString(iter.Key(), sTag)
 			v := GetFieldString(iter.Value(), sTag)
-			s += mapSeparator + k + ":" + v
+			s = append(s, k+":"+v)
 		}
-		return strings.TrimLeft(s, mapSeparator)
+		sort.Sort(sort.StringSlice(s)) // sorted for consistency
+		return strings.Join(s, mapSeparator)
 	default:
 		return ""
 	}
