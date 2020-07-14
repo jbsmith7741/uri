@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/jbsmith7741/go-tools/appenderr"
 )
+
+var regMapSplit = regexp.MustCompile("^(.*?)[:](.*)")
 
 // Unmarshal copies a standard parsable uri to a predefined struct
 // [scheme:][//[userinfo@]host][/]path[?query][#fragment]
@@ -100,7 +103,7 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		if err := SetField(field, data, vStruct.Type().Field(i)); err != nil {
-			errs.Addf("%q can not be set to %s (%s)", data, name, field.Type())
+			errs.Wrapf(err, "%q can not be set to %s (%s)", data, name, field.Type())
 		}
 	}
 
@@ -219,14 +222,17 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Struct:
 		v := reflect.New(value.Type())
 		if value.Type() == reflect.TypeOf(time.Time{}) {
-			if format := sField.Tag.Get("format"); format != "" {
-				t, err := time.Parse(format, s)
-				if err != nil {
-					return err
-				}
-				value.Set(reflect.ValueOf(t))
-				return nil
+			format := sField.Tag.Get("format")
+			if format == "" {
+				format = time.RFC3339
 			}
+			t, err := time.Parse(format, s)
+			if err != nil {
+				return err
+			}
+			value.Set(reflect.ValueOf(t))
+			return nil
+
 		}
 		if implementsUnmarshaler(v) {
 			err := v.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s))
@@ -248,11 +254,11 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 
 		// Split string into fields and key,value pairs
 		for _, row := range strings.Split(s, mapSeparator) {
-			d := strings.Split(row, ":")
-			if len(d) != 2 {
+			d := regMapSplit.FindStringSubmatch(row)
+			if len(d) != 3 {
 				return fmt.Errorf("invalid map format expected key:value got %v", row)
 			}
-			k, v := d[0], d[1]
+			k, v := d[1], d[2] // d[0] is match string
 			// set key value
 			kValue := reflect.New(kType).Elem()
 			if err := SetField(kValue, k, sField); err != nil {
