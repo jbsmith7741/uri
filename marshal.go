@@ -16,9 +16,11 @@ var (
 	mapSeparator = "|"
 
 	// supported struct tags
-	uriTag      = "uri"
-	defaultTag  = "default"
-	requiredTag = "required"
+	uriTag       = "uri"
+	defaultTag   = "default"
+	requiredTag  = "required"
+	jsonTag      = "json"
+	usingJSONTag = false
 
 	// supported tag values
 	scheme    = "scheme"
@@ -29,6 +31,14 @@ var (
 	origin    = "origin"    // scheme://host/path
 	fragment  = "fragment"  // anything after hash #
 )
+
+// UseJSONTag will use the "json" struct field tag values instead of "uri" for determining
+// the expected querystring parameter name. JSON specific struct tag options such as "omitempty" and "string" are
+// ignored.
+func UseJSONTag() {
+	uriTag = jsonTag
+	usingJSONTag = true
+}
 
 // Marshal a struct into a string representation of a uri
 // Note: Marshal panics if a struct or pointer to a struct is not provided
@@ -81,7 +91,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		}
 		var name string
 		structTag := vStruct.Type().Field(i).Tag
-		tag := structTag.Get(uriTag)
+		tag := parseURITag(structTag.Get(uriTag))
 
 		fs := GetFieldString(field, structTag)
 
