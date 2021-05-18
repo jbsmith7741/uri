@@ -1,4 +1,4 @@
-module github.com/jbsmith7741/uri
+module github.com/rlball/uri
 
 go 1.13
 
