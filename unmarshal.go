@@ -42,7 +42,7 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		name := vStruct.Type().Field(i).Name
-		tag := vStruct.Type().Field(i).Tag.Get(uriTag)
+		tag := parseURITag(vStruct.Type().Field(i).Tag.Get(uriTag))
 		if tag == "-" {
 			continue
 		}

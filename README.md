@@ -12,7 +12,7 @@ Known Issues:
 
 # uri
 
-a convenient and easy way to convert from a uri to a struct or vic-versa
+A convenient and easy way to convert from a uri to a struct or vic-versa.
 
 ## keywords
 
@@ -31,6 +31,21 @@ a convenient and easy way to convert from a uri to a struct or vic-versa
   - time.Time: time format field for marshaling of time.Time `format:"2006-01-02T15:04:05Z"`
   - rune/int32: `format:"rune"`
 
+## Other Options
+
+### Use "json" struct tag values
+You may wish to use existing "json" struct tag values instead of defining "uri" values for querystring parameter 
+names. To do so call "UseJSONTag()".
+
+```go
+package main
+
+import "github.com/jbsmith7741/uri"
+
+func main() {
+    uri.UseJSONTag()
+}
+```
 
 ## Non-Standard Query Params Support 
 
@@ -41,7 +56,8 @@ Arrays are supported by passing a comma separated list or by passing the value m
   - `?array=1&array=2&array=3&array=4`
 
 ### Maps
- maps are supported by providing the key value param into the value with a colon `:` in between them. Multiple pairs can be passed as separated params or joined with the pipe `|` 
+Maps are supported by providing the key value param into the value with a colon `:` in between them. Multiple pairs 
+can be passed as separated params or joined with the pipe `|` 
 
   - map[string]int `?map=a:1|b:2|c:3` 
   - map[int]string `?map=1:a&map=2:b&map=3:c`
@@ -50,7 +66,8 @@ Arrays are supported by passing a comma separated list or by passing the value m
 
 ## example 1
 
-If we have the uri "http://example.com/path/to/page?name=ferret&color=purple" we can unmarshal this to a predefined struct as follows
+If we have the uri "http://example.com/path/to/page?name=ferret&color=purple" we can unmarshal this to a predefined 
+struct as follows:
 
 ``` go
 type Example struct {
@@ -68,7 +85,7 @@ err := uri.Unmarshal("http://example.com/path/to/page?name=ferret&color=purple",
 }
 ```
 
-this would become the following struct
+This would become the following struct:
 
 ``` go
 e := Example{
