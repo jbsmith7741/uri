@@ -10,17 +10,16 @@ import (
 	"time"
 )
 
-var (
-	// separator used for slices
-	separator    = ","
-	mapSeparator = "|"
+const (
+	// sliceDelim used for slices
+	sliceDelim = ","
+	mapDelim   = "|"
 
 	// supported struct tags
-	uriTag       = "uri"
-	defaultTag   = "default"
-	requiredTag  = "required"
-	jsonTag      = "json"
-	usingJSONTag = false
+	uriTag      = "uri"
+	jsonTag     = "json"
+	defaultTag  = "default"
+	requiredTag = "required"
 
 	// supported tag values
 	scheme    = "scheme"
@@ -31,14 +30,6 @@ var (
 	origin    = "origin"    // scheme://host/path
 	fragment  = "fragment"  // anything after hash #
 )
-
-// UseJSONTag will use the "json" struct field tag values instead of "uri" for determining
-// the expected querystring parameter name. JSON specific struct tag options such as "omitempty" and "string" are
-// ignored.
-func UseJSONTag() {
-	uriTag = jsonTag
-	usingJSONTag = true
-}
 
 // Marshal a struct into a string representation of a uri
 // Note: Marshal panics if a struct or pointer to a struct is not provided
@@ -91,7 +82,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		}
 		var name string
 		structTag := vStruct.Type().Field(i).Tag
-		tag := parseURITag(structTag.Get(uriTag))
+		tag := parseURITag(structTag)
 
 		fs := GetFieldString(field, structTag)
 
@@ -139,7 +130,7 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		}
 
 		if field.Kind() == reflect.Slice {
-			for _, v := range strings.Split(fs, separator) {
+			for _, v := range strings.Split(fs, sliceDelim) {
 				uVal.Add(name, v)
 			}
 		} else {
@@ -190,9 +181,9 @@ func GetFieldString(value reflect.Value, sTag reflect.StructTag) string {
 	case reflect.Slice:
 		var s string
 		for i := 0; i < value.Len(); i++ {
-			s += GetFieldString(value.Index(i), sTag) + separator
+			s += GetFieldString(value.Index(i), sTag) + sliceDelim
 		}
-		return strings.TrimRight(s, separator)
+		return strings.TrimRight(s, sliceDelim)
 	case reflect.Struct:
 		s, _ := tryMarshal(value)
 		return s
@@ -205,7 +196,7 @@ func GetFieldString(value reflect.Value, sTag reflect.StructTag) string {
 			s = append(s, k+":"+v)
 		}
 		sort.Sort(sort.StringSlice(s)) // sorted for consistency
-		return strings.Join(s, mapSeparator)
+		return strings.Join(s, mapDelim)
 	default:
 		return ""
 	}

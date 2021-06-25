@@ -42,7 +42,7 @@ func Unmarshal(uri string, v interface{}) error {
 		}
 
 		name := vStruct.Type().Field(i).Name
-		tag := parseURITag(vStruct.Type().Field(i).Tag.Get(uriTag))
+		tag := parseURITag(vStruct.Type().Field(i).Tag)
 		if tag == "-" {
 			continue
 		}
@@ -68,10 +68,10 @@ func Unmarshal(uri string, v interface{}) error {
 		required := vStruct.Type().Field(i).Tag.Get(requiredTag)
 		data := values.Get(name)
 		if field.Kind() == reflect.Slice {
-			data = strings.Join(values[name], separator)
+			data = strings.Join(values[name], sliceDelim)
 		}
 		if field.Kind() == reflect.Map {
-			data = strings.Join(values[name], mapSeparator)
+			data = strings.Join(values[name], mapDelim)
 		}
 		switch tag {
 		case scheme:
@@ -214,7 +214,7 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 		if s == "" { // ignore empty slices
 			return nil
 		}
-		data := strings.Split(s, separator)
+		data := strings.Split(s, sliceDelim)
 		slice := reflect.MakeSlice(value.Type(), 0, len(data))
 		for _, v := range data {
 			baseValue := reflect.New(baseType).Elem()
@@ -256,7 +256,7 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 		vType := value.Type().Elem()
 
 		// Split string into fields and key,value pairs
-		for _, row := range strings.Split(s, mapSeparator) {
+		for _, row := range strings.Split(s, mapDelim) {
 			d := regMapSplit.FindStringSubmatch(row)
 			if len(d) != 3 {
 				return fmt.Errorf("invalid map format expected key:value got %v", row)

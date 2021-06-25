@@ -34,18 +34,8 @@ A convenient and easy way to convert from a uri to a struct or vic-versa.
 ## Other Options
 
 ### Use "json" struct tag values
-You may wish to use existing "json" struct tag values instead of defining "uri" values for querystring parameter 
-names. To do so call "UseJSONTag()".
-
-```go
-package main
-
-import "github.com/jbsmith7741/uri"
-
-func main() {
-    uri.UseJSONTag()
-}
-```
+You may use existing "json" struct tag values instead of defining "uri" values for query parameter names.
+The uri tag can be used to override the values in the json struct tag. 
 
 ## Non-Standard Query Params Support 
 
