@@ -52,12 +52,11 @@ func isZero(v reflect.Value) bool {
 	return v.Interface() == z.Interface()
 }
 
-// parseURITag splits the passed tag value by comma and returns the first value. Comma separated values
-// is only checked when using the "json" tag as the name.
-func parseURITag(tv string) string {
-	if !usingJSONTag {
-		return tv
+// parseURITag gets structTag field from uriTag or jsonTag.
+// If the jsonTag value is found the only the value before the comma is returned.
+func parseURITag(v reflect.StructTag) string {
+	if tag := v.Get(uriTag); tag != "" {
+		return tag
 	}
-
-	return strings.Split(tv, ",")[0]
+	return strings.Split(v.Get(jsonTag), ",")[0]
 }
