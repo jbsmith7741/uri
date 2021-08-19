@@ -262,6 +262,10 @@ func TestUnmarshal(t *testing.T) {
 				IntsP: []*int{trial.IntP(1), trial.IntP(2), nil, trial.IntP(3)},
 			},
 		},
+		"empty slice": {
+			Input:    "?Ints=&Strings=",
+			Expected: &testStruct{},
+		},
 		"alias type (dessert)": {
 			Input:    "?Dessert=brownie",
 			Expected: &testStruct{Dessert: brownie},
