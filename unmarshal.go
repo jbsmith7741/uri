@@ -211,6 +211,9 @@ func SetField(value reflect.Value, s string, sField reflect.StructField) error {
 	case reflect.Slice:
 		// create a generate slice and recursively assign the elements
 		baseType := reflect.TypeOf(value.Interface()).Elem()
+		if s == "" { // ignore empty slices
+			return nil
+		}
 		data := strings.Split(s, separator)
 		slice := reflect.MakeSlice(value.Type(), 0, len(data))
 		for _, v := range data {
