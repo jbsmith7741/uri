@@ -51,3 +51,12 @@ func isZero(v reflect.Value) bool {
 	z := reflect.Zero(v.Type())
 	return v.Interface() == z.Interface()
 }
+
+// parseURITag gets structTag field from uriTag or jsonTag.
+// If the jsonTag value is found the only the value before the comma is returned.
+func parseURITag(v reflect.StructTag) string {
+	if tag := v.Get(uriTag); tag != "" {
+		return tag
+	}
+	return strings.Split(v.Get(jsonTag), ",")[0]
+}

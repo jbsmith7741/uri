@@ -279,7 +279,42 @@ func TestMarshal(t *testing.T) {
 			}{Map: nil},
 			Expected: "",
 		},
+		"json simple": {
+			Input: struct {
+				String string `json:"apple"`
+			}{String: "Fuji"},
+			Expected: "?apple=Fuji",
+		},
+		"json with uri": {
+			Input: struct {
+				String string `json:"apple" uri:"fruit"`
+			}{String: "Fuji"},
+			Expected: "?fruit=Fuji",
+		},
+		"json ignore": {
+			Input: struct {
+				String string `json:"-" uri:"fruit"`
+			}{String: "Fuji"},
+			Expected: "?fruit=Fuji",
+		},
+		"json uri ignore": {
+			Input: struct {
+				String string `json:"apple" uri:"-"`
+			}{String: "Fuji"},
+			Expected: "",
+		},
+		"json omitempty": {
+			Input: struct {
+				String string `json:"apple,omitempty"`
+			}{String: "Fuji"},
+			Expected: "?apple=Fuji",
+		},
+		"json blank": {
+			Input: struct {
+				String string `json:",omitempty"`
+			}{String: "Fuji"},
+			Expected: "?String=Fuji",
+		},
 	}
-
 	trial.New(fn, cases).SubTest(t)
 }

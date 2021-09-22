@@ -455,6 +455,36 @@ func TestTags(t *testing.T) {
 				Embedded: &Embedded{Int: 10, String: "hello"},
 			},
 		},
+		"json": {
+			uri: "?name=hello",
+			expected: &struct {
+				String string `json:"name"`
+			}{String: "hello"},
+		},
+		"json with uri": {
+			uri: "?name=hello&value=world",
+			expected: &struct {
+				String string `json:"name" uri:"value"`
+			}{String: "world"},
+		},
+		"json ignore": {
+			uri: "?name=hello&value=world",
+			expected: &struct {
+				String string `json:"-" uri:"value"`
+			}{String: "world"},
+		},
+		"json ignore (default)": {
+			uri: "?name=hello&String=world",
+			expected: &struct {
+				String string `json:"-"`
+			}{String: ""},
+		},
+		"json uri ignore": {
+			uri: "?name=hello&value=world",
+			expected: &struct {
+				String string `json:"name" uri:"-"`
+			}{String: ""},
+		},
 	}
 	for name, test := range cases {
 		v := reflect.New(reflect.TypeOf(test.expected).Elem()).Interface()
