@@ -66,7 +66,9 @@ func MarshalUnescaped(v interface{}) string {
 func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 	for i := 0; i < vStruct.NumField(); i++ {
 		field := vStruct.Field(i)
-
+		if !field.CanInterface() {
+			continue // skip unexported variables
+		}
 		// check for embedded struct and handle recursively
 		if field.Kind() == reflect.Struct {
 			ptr := reflect.New(field.Type())
