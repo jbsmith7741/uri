@@ -315,6 +315,13 @@ func TestMarshal(t *testing.T) {
 			}{String: "Fuji"},
 			Expected: "?String=Fuji",
 		},
+		"private": {
+			Input: struct {
+				Int  int
+				name string
+			}{Int: 7, name: "hello"},
+			Expected: "?Int=7",
+		},
 	}
 	trial.New(fn, cases).SubTest(t)
 }
