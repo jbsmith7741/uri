@@ -12,15 +12,21 @@ Known Issues:
 
 # uri
 
-A convenient and easy way to convert from a uri to a struct or vic-versa.
+A convenient and easy way to convert from a uri to a struct or vic-versa. [wikipedia](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
 
-## keywords
+![](./assets/URI_syntax_diagram.svg.png)
 
-- scheme
-- host
-- path
-- authority (schema:host)
+## special keywords
+
 - origin (schema:host/path)
+- scheme
+- authority (userinfo@host:port)
+  - userinfo
+    - username
+    - password 
+  - host
+  - port 
+- fragment 
 
 ## struct tags
 

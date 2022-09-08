@@ -215,6 +215,24 @@ func TestMarshal(t *testing.T) {
 			},
 			Expected: "http://localhost:8080",
 		},
+		"username_password": {
+			Input: struct {
+				Username string `uri:"username"`
+				Password string `uri:"password"`
+			}{
+				Username: "user",
+				Password: "pass",
+			},
+			Expected: "//user:pass@",
+		},
+		"userinfo": {
+			Input: struct {
+				UserInfo string `uri:"userinfo"`
+			}{
+				UserInfo: "userinfo:asd",
+			},
+			Expected: "//userinfo:asd@",
+		},
 		/* how should this case be handled?
 		"origin override": {
 			Input: struct {

@@ -25,6 +25,9 @@ const (
 	scheme    = "scheme"
 	host      = "host"
 	path      = "path"
+	userinfo  = "userinfo"
+	password  = "password"
+	username  = "username"
 	filename  = "filename"
 	authority = "authority" // scheme://host
 	origin    = "origin"    // scheme://host/path
@@ -100,6 +103,20 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 			continue
 		case fragment:
 			u.Fragment = fs
+			continue
+		case userinfo:
+			u.User = url.User(fs)
+			continue
+		case username:
+			p, set := u.User.Password()
+			if set {
+				u.User = url.UserPassword(fs, p)
+			} else {
+				u.User = url.User(fs)
+			}
+			continue
+		case password:
+			u.User = url.UserPassword(u.User.Username(), fs)
 			continue
 		case origin: // scheme://host/path
 			l, err := url.Parse(fs)

@@ -80,6 +80,12 @@ func Unmarshal(uri string, v interface{}) error {
 			data = u.Host
 		case path:
 			data = u.Path
+		case userinfo:
+			data = u.User.String()
+		case username:
+			data = u.User.Username()
+		case password:
+			data, _ = u.User.Password()
 		case filename:
 			_, data = filepath.Split(u.Path)
 		case origin:
