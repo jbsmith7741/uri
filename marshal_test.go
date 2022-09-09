@@ -217,8 +217,8 @@ func TestMarshal(t *testing.T) {
 		},
 		"username_password": {
 			Input: struct {
-				Username string `uri:"username"`
 				Password string `uri:"password"`
+				Username string `uri:"username"`
 			}{
 				Username: "user",
 				Password: "pass",
