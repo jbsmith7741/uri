@@ -18,13 +18,13 @@ A convenient and easy way to convert from a uri to a struct or vic-versa. [wikip
 
 ## special keywords
 
-- origin (schema:host/path)
+- origin (scheme:host/path) 
 - scheme
-- authority (userinfo@host:port)
+- authority (userinfo@host)
   - userinfo
     - username
     - password 
-  - host
+  - host (includes port)
   - port 
 - fragment 
 

@@ -211,9 +211,9 @@ func TestMarshal(t *testing.T) {
 			Input: struct {
 				Authority string `uri:"authority"`
 			}{
-				Authority: "http://localhost:8080/path/to/file.txt",
+				Authority: "http://user:pass@localhost:8080/path/to/file.txt",
 			},
-			Expected: "http://localhost:8080",
+			Expected: "//user:pass@localhost:8080",
 		},
 		"username_password": {
 			Input: struct {
