@@ -375,10 +375,22 @@ func TestTags(t *testing.T) {
 			uri: "https://localhost:8080/usr/bin",
 			expected: &struct {
 				Authority string `uri:"authority"`
-			}{Authority: "https://localhost:8080"},
+			}{Authority: "localhost:8080"},
+		},
+		"Authority with userinfo": {
+			uri: "https://user:pass@localhost:8080/usr/bin",
+			expected: &struct {
+				Authority string `uri:"authority"`
+			}{Authority: "user:pass@localhost:8080"},
 		},
 		"Origin uri tag": {
 			uri: "https://localhost:8080/usr/bin",
+			expected: &struct {
+				Origin string `uri:"Origin"`
+			}{Origin: "https://localhost:8080/usr/bin"},
+		},
+		"Origin with userinfo": {
+			uri: "https://user:pass@localhost:8080/usr/bin",
 			expected: &struct {
 				Origin string `uri:"Origin"`
 			}{Origin: "https://localhost:8080/usr/bin"},
@@ -388,6 +400,14 @@ func TestTags(t *testing.T) {
 			expected: &struct {
 				Origin string `uri:"Origin"`
 			}{Origin: "/usr/bin"},
+		},
+		"userinfo": {
+			uri: "//user:pass@localhost:8080/usr/bin",
+			expected: &struct {
+				Username string `uri:"username"`
+				Password string `uri:"password"`
+				UserInfo string `uri:"userinfo"`
+			}{Username: "user", Password: "pass", UserInfo: "user:pass"},
 		},
 		"Custom int name": {
 			uri: "?NewInt=10",

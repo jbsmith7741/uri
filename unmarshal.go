@@ -80,6 +80,12 @@ func Unmarshal(uri string, v interface{}) error {
 			data = u.Host
 		case path:
 			data = u.Path
+		case userinfo:
+			data = u.User.String()
+		case username:
+			data = u.User.Username()
+		case password:
+			data, _ = u.User.Password()
 		case filename:
 			_, data = filepath.Split(u.Path)
 		case origin:
@@ -88,7 +94,10 @@ func Unmarshal(uri string, v interface{}) error {
 				data = u.Path
 			}
 		case authority:
-			data = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+			data = u.Host
+			if userinfo := u.User.String(); userinfo != "" {
+				data = fmt.Sprintf("%s@%s", userinfo, u.Host)
+			}
 		case fragment:
 			data = u.Fragment
 		default:

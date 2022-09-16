@@ -211,9 +211,27 @@ func TestMarshal(t *testing.T) {
 			Input: struct {
 				Authority string `uri:"authority"`
 			}{
-				Authority: "http://localhost:8080/path/to/file.txt",
+				Authority: "http://user:pass@localhost:8080/path/to/file.txt",
 			},
-			Expected: "http://localhost:8080",
+			Expected: "//user:pass@localhost:8080",
+		},
+		"username_password": {
+			Input: struct {
+				Password string `uri:"password"`
+				Username string `uri:"username"`
+			}{
+				Username: "user",
+				Password: "pass",
+			},
+			Expected: "//user:pass@",
+		},
+		"userinfo": {
+			Input: struct {
+				UserInfo string `uri:"userinfo"`
+			}{
+				UserInfo: "userinfo:asd",
+			},
+			Expected: "//userinfo:asd@",
 		},
 		/* how should this case be handled?
 		"origin override": {

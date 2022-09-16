@@ -25,9 +25,12 @@ const (
 	scheme    = "scheme"
 	host      = "host"
 	path      = "path"
+	userinfo  = "userinfo"
+	password  = "password"
+	username  = "username"
 	filename  = "filename"
-	authority = "authority" // scheme://host
-	origin    = "origin"    // scheme://host/path
+	authority = "authority" // userinfo@host
+	origin    = "origin"    // scheme://host/path - see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin
 	fragment  = "fragment"  // anything after hash #
 )
 
@@ -101,6 +104,20 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 		case fragment:
 			u.Fragment = fs
 			continue
+		case userinfo:
+			u.User = url.User(fs)
+			continue
+		case username:
+			p, set := u.User.Password()
+			if set {
+				u.User = url.UserPassword(fs, p)
+			} else {
+				u.User = url.User(fs)
+			}
+			continue
+		case password:
+			u.User = url.UserPassword(u.User.Username(), fs)
+			continue
 		case origin: // scheme://host/path
 			l, err := url.Parse(fs)
 			if err == nil {
@@ -109,11 +126,11 @@ func parseStruct(u *url.URL, uVal *url.Values, vStruct reflect.Value) {
 				u.Path = l.Path
 			}
 			continue
-		case authority: // scheme://host
+		case authority: //userinfo@host
 			l, err := url.Parse(fs)
 			if err == nil {
+				u.User = l.User
 				u.Host = l.Host
-				u.Scheme = l.Scheme
 			}
 			continue
 		case "-": // skip disabled fields
