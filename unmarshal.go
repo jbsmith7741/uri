@@ -119,6 +119,13 @@ func Unmarshal(uri string, v interface{}) error {
 	return errs.ErrOrNil()
 }
 
+// UnmarshalQuery is a comparable to the url.ParseQuery()
+func UnmarshalQuery(query string, v interface{}) error {
+	u := url.URL{}
+	u.RawQuery = query
+	return Unmarshal(u.String(), v)
+}
+
 func handleEmbeddeStruct(uri string, value reflect.Value) (bool, error) {
 	// do we have an embedded struct
 	switch value.Kind() {
