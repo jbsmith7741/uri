@@ -25,7 +25,13 @@ func Unmarshal(uri string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	values := u.Query()
+	if strings.Contains(u.RawQuery, ";") {
+		u.RawQuery = strings.Replace(u.RawQuery, ";", "%3B", -1)
+	}
+	values, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return err
+	}
 
 	//verify that v is a pointer
 	if value := reflect.ValueOf(v); value.Kind() != reflect.Ptr || value.IsNil() {

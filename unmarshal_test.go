@@ -120,6 +120,10 @@ func TestUnmarshal(t *testing.T) {
 			Input:    "?String=hello",
 			Expected: &testStruct{String: "hello"},
 		},
+		"string_semicolon": {
+			Input:    "?String=hello;world",
+			Expected: &testStruct{String: "hello;world"},
+		},
 		"integer: int, int32, int64": {
 			Input:    "?Int=10&Int32=32&Int64=64",
 			Expected: &testStruct{Int: 10, Int32: 32, Int64: 64},
