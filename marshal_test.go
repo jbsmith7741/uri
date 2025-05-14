@@ -340,6 +340,12 @@ func TestMarshal(t *testing.T) {
 			}{Int: 7, name: "hello"},
 			Expected: "?Int=7",
 		},
+		"semicolon": {
+			Input: struct {
+				String string
+			}{String: "hello;world"},
+			Expected: "?String=hello;world",
+		},
 	}
 	trial.New(fn, cases).SubTest(t)
 }
